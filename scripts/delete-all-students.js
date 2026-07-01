@@ -35,17 +35,16 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 async function main() {
-  console.log('🧹 Deleting ALL student auth users...\n')
+  console.log('🧹 Deleting ALL users (not just students)...\n')
 
   let deleted = 0
   let errors = 0
   let page = 1
 
   while (true) {
-    // List users page by page
     const { data, error } = await supabase.auth.admin.listUsers({
       page,
-      perPage: 100,
+      perPage: 500,
     })
 
     if (error) {
@@ -57,19 +56,16 @@ async function main() {
     if (users.length === 0) break
 
     for (const user of users) {
-      if (user.email && user.email.includes('@student.skmkj.edu.my')) {
-        const { error: delErr } = await supabase.auth.admin.deleteUser(user.id)
-        if (delErr) {
-          console.log(`   ❌ ${user.email} | ${delErr.message}`)
-          errors++
-        } else {
-          deleted++
-          if (deleted % 100 === 0) process.stdout.write(`   ${deleted} deleted...\r`)
-        }
+      const { error: delErr } = await supabase.auth.admin.deleteUser(user.id)
+      if (delErr) {
+        errors++
+      } else {
+        deleted++
+        if (deleted % 100 === 0) process.stdout.write(`   ${deleted} deleted...\r`)
       }
     }
 
-    if (users.length < 100) break
+    if (users.length < 500) break
     page++
   }
 
