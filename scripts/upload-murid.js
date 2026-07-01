@@ -8,9 +8,23 @@
 const XLSX = require('xlsx')
 const { createClient } = require('@supabase/supabase-js')
 const readline = require('readline')
+const fs = require('fs')
+const path = require('path')
 
-// Load env
-require('dotenv').config({ path: '.env.local' })
+// Load env from .env.local manually (dotenv require may not work in this context)
+try {
+  const envPath = path.resolve(__dirname, '..', '.env.local')
+  const envContent = fs.readFileSync(envPath, 'utf-8')
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim()
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const [key, ...rest] = trimmed.split('=')
+      process.env[key.trim()] = rest.join('=').trim()
+    }
+  })
+} catch (e) {
+  console.error('❌ Cannot read .env.local:', e.message)
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
