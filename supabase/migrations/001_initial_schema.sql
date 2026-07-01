@@ -75,10 +75,7 @@ CREATE TABLE risk_levels (
     level risk_level NOT NULL,
     reason TEXT, -- auto-generated atau manual override
     calculated_at TIMESTAMPTZ DEFAULT NOW(),
-    is_active BOOLEAN DEFAULT TRUE,
-    
-    -- hanya satu active risk level per student
-    UNIQUE(student_id, is_active) WHERE is_active = TRUE
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 -- 5. behavior_records (pelbagai sumber data)
@@ -185,6 +182,7 @@ CREATE TABLE ai_recommendations (
 CREATE INDEX idx_checkins_student_date ON checkins(student_id, checkin_date DESC);
 CREATE INDEX idx_behavior_records_student ON behavior_records(student_id, record_date DESC);
 CREATE INDEX idx_risk_levels_active ON risk_levels(student_id, is_active) WHERE is_active = TRUE;
+CREATE UNIQUE INDEX idx_risk_levels_one_active_per_student ON risk_levels(student_id) WHERE is_active = TRUE;
 CREATE INDEX idx_intervention_records_student ON intervention_records(student_id, session_date DESC);
 CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read) WHERE is_read = FALSE;
 CREATE INDEX idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
