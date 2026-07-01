@@ -39,6 +39,14 @@ function parseExcel(filePath) {
   const workbook = XLSX.readFile(filePath)
   const sheetName = workbook.SheetNames[0]
   const sheet = workbook.Sheets[sheetName]
+
+  // KPM Excel has 6 metadata rows at the top — skip them
+  const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1')
+  if (range.e.r > 6) {
+    range.s.r = 6 // header row
+  }
+  sheet['!ref'] = XLSX.utils.encode_range(range)
+
   const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' })
 
   const students = []
