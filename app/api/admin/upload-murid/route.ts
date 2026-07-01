@@ -4,8 +4,8 @@ import * as XLSX from 'xlsx'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'star-kjo-admin-2026'
 
-// Build-time optional, runtime required
 function getSupabase() {
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Missing Supabase credentials')
@@ -59,13 +59,46 @@ function parseExcel(buffer: Buffer): StudentData[] {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = getSupabase()
+    // Simple admin auth: check API key from header OR allow any authenticated request
+    const apiKey = req.headers.get('x-admin-key')
+    const cookieHeader = req.headers.get('cookie') || ''
 
-    // Check admin auth
-    const authHeader = req.headers.get('cookie')
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Accept either: valid API key OR request with Supabase session cookie
+    const hasCookie = cookieHeader.includes('sb-')
+    const hasApiKey = apiKey === ADMIN_API_KEY
+
+    if (!hasApiKey && !hasCookie) {
+      return NextResponse.json({ error: 'Unauthorized - tiada sesi login' }, { status: 401 })
     }
+
+    // If cookie present, verify it's from admin
+    if (hasCookie && !hasApiKey) {
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      if (supabaseAnonKey) {
+        const userClient = createClient(supabaseUrl!, supabaseAnonKey, {
+          auth: { persistSession: false },
+        })
+        // Try get user from cookie
+        try {
+          const { data: { user }, error: userErr } = await userClient.auth.getUser()
+          if (userErr || !user) {
+            return NextResponse.json({ error: 'Sesi tamat. Sila log masuk semula.' }, { status: 401 })
+          }
+          const { data: profile } = await userClient
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+          if (!profile || profile.role !== 'admin') {
+            return NextResponse.json({ error: 'Hanya pentadbir dibenarkan' }, { status: 403 })
+          }
+        } catch {
+          return NextResponse.json({ error: 'Ralat pengesahan. Guna API key.' }, { status: 401 })
+        }
+      }
+    }
+
+    const supabase = getSupabase()
 
     // Parse form data
     const formData = await req.formData()

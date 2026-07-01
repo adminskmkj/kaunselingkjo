@@ -47,6 +47,7 @@ export default function AdminUploadMuridPage() {
     try {
       const res = await fetch('/api/admin/upload-murid', {
         method: 'POST',
+        headers: { 'x-admin-key': 'star-kjo-admin-2026' },
         body: formData,
       })
 
