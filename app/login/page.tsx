@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 
 export default function LoginPage() {
@@ -87,9 +88,9 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-600">
-            <a href="/" className="text-blue-600 hover:underline">
+            <Link href="/" className="text-blue-600 hover:underline">
               ← Kembali ke halaman utama
-            </a>
+            </Link>
           </div>
         </div>
 

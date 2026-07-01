@@ -33,6 +33,7 @@ export default function MuridDashboard() {
         fetchData()
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, authLoading, router])
 
   const fetchData = async () => {
