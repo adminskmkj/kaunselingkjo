@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { signIn } = useAuth()
+  const { signIn, demoSignIn } = useAuth()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -86,6 +86,30 @@ export default function LoginPage() {
               {loading ? 'Memasuki...' : 'Log Masuk'}
             </button>
           </form>
+
+          <div className="mt-6 border-t pt-6">
+            <p className="text-center text-sm font-medium text-gray-700 mb-3">Mode demo tanpa Supabase</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: 'Demo Murid', role: 'student' as const },
+                { label: 'Demo GBK', role: 'counselor' as const },
+                { label: 'Demo Guru', role: 'class_teacher' as const },
+                { label: 'Demo Ibu Bapa', role: 'parent' as const },
+              ].map((item) => (
+                <button
+                  key={item.role}
+                  type="button"
+                  onClick={() => {
+                    demoSignIn(item.role)
+                    router.push('/dashboard')
+                  }}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="mt-6 text-center text-sm text-gray-600">
             <Link href="/" className="text-blue-600 hover:underline">

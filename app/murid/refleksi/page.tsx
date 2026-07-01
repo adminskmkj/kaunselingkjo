@@ -5,6 +5,12 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 
+type SupabaseInsertClient = {
+  from: (table: string) => {
+    insert: (payload: Record<string, unknown>) => Promise<{ error: Error | null }>
+  }
+}
+
 type EmotionType = 'gembira' | 'biasa' | 'sedih' | 'tertekan'
 type NeedHelp = 'ya' | 'mungkin' | 'tidak'
 
@@ -39,24 +45,28 @@ export default function RefleksiPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase
-        .from('checkins')
-        .insert({
-          student_id: profile!.id,
-          checkin_date: new Date().toISOString().split('T')[0],
-          q1_kehadiran_ketepatan: q1,
-          q2_pematuhan_peraturan: q2,
-          q3_penyiapan_tugasan: q3,
-          q4_kebersihan: q4,
-          q5_komunikasi_sopan: q5,
-          q6_motivasi_belajar: q6,
-          q7_perasaan_emosi: q7,
-          q8_hubungan_rakan: q8,
-          q9_tahap_stres: q9,
-          q10_perlukan_bantuan: q10,
-        })
+      if (profile!.id.startsWith('demo-')) {
+        localStorage.setItem('star-kjo-demo-checkin-today', new Date().toISOString())
+      } else {
+        const { error } = await (supabase as unknown as SupabaseInsertClient)
+          .from('checkins')
+          .insert({
+            student_id: profile!.id,
+            checkin_date: new Date().toISOString().split('T')[0],
+            q1_kehadiran_ketepatan: q1,
+            q2_pematuhan_peraturan: q2,
+            q3_penyiapan_tugasan: q3,
+            q4_kebersihan: q4,
+            q5_komunikasi_sopan: q5,
+            q6_motivasi_belajar: q6,
+            q7_perasaan_emosi: q7,
+            q8_hubungan_rakan: q8,
+            q9_tahap_stres: q9,
+            q10_perlukan_bantuan: q10,
+          })
 
-      if (error) throw error
+        if (error) throw error
+      }
 
       setSubmitted(true)
       setTimeout(() => {
