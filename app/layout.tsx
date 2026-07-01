@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth-context";
 
 export const metadata: Metadata = {
   title: "S.T.A.R KJo - Student Tracker Attitude Report",
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="ms">
       <body className="antialiased">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
