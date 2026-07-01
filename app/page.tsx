@@ -66,6 +66,14 @@ export default function Home() {
             <h2 className="text-xl font-bold text-orange-600 mb-2">Ibu Bapa</h2>
             <p className="text-sm text-neutral-600">Lihat perkembangan anak anda</p>
           </div>
+          
+          <div className="card group hover:shadow-strong transition-all duration-200">
+            <div className="w-12 h-12 rounded-xl bg-neutral-200 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+              🔧
+            </div>
+            <h2 className="text-xl font-bold text-neutral-700 mb-2">Pentadbir</h2>
+            <p className="text-sm text-neutral-600">Upload murid & tetapan sistem</p>
+          </div>
         </div>
 
         {/* Footer */}

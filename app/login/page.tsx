@@ -114,6 +114,7 @@ export default function LoginPage() {
                 { label: 'Demo GBK', role: 'counselor' as const, icon: '👨‍💼' },
                 { label: 'Demo Guru', role: 'class_teacher' as const, icon: '👨‍🏫' },
                 { label: 'Demo Ibu Bapa', role: 'parent' as const, icon: '👨‍👩‍👧' },
+                { label: 'Demo Pentadbir', role: 'admin' as const, icon: '🔧' },
               ].map((item) => (
                 <button
                   key={item.role}
