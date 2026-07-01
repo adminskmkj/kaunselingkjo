@@ -14,9 +14,15 @@ export default function AdminUploadMuridPage() {
 
   if (profile?.role !== 'admin') {
     return (
-      <PortalShell title="Access Denied">
-        <div className="rounded-lg bg-red-50 p-6 text-red-700">
-          Hanya pentadbir boleh akses halaman ini.
+      <PortalShell title="Akses Ditolak">
+        <div className="card bg-red-50 border-red-200">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⛔</span>
+            <div>
+              <p className="font-semibold text-red-900 mb-1">Akses Terhad</p>
+              <p className="text-red-700">Hanya pentadbir boleh akses halaman ini.</p>
+            </div>
+          </div>
         </div>
       </PortalShell>
     )
@@ -68,70 +74,131 @@ export default function AdminUploadMuridPage() {
 
   return (
     <PortalShell title="Upload Murid dari Excel" subtitle="Import data murid dari fail Excel KPM (JBA1010)">
-      <div className="max-w-2xl rounded-lg bg-white p-8 shadow">
-        <div className="mb-6">
-          <h2 className="mb-2 text-lg font-bold text-gray-900">Langkah-langkah:</h2>
-          <ol className="list-decimal space-y-2 pl-5 text-gray-700">
-            <li>Dapatkan Excel terkini dari sistem KPM (format JBA1010)</li>
-            <li>Pilih fail Excel di bawah</li>
-            <li>Klik <strong>Upload & Sync</strong></li>
-            <li>Tunggu proses selesai (murid baru akan dibuat, kelas akan dikemaskini)</li>
-          </ol>
-        </div>
-
-        <div className="mb-6">
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Pilih Fail Excel (.xlsx)
-          </label>
-          <input
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleFileChange}
-            disabled={uploading}
-            className="w-full rounded-lg border border-gray-300 p-3 file:mr-4 file:rounded file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-600 hover:file:bg-blue-100"
-          />
-          {file && (
-            <p className="mt-2 text-sm text-gray-600">
-              Fail dipilih: <strong>{file.name}</strong> ({(file.size / 1024).toFixed(1)} KB)
-            </p>
-          )}
-        </div>
-
-        {result && (
-          <div
-            className={`mb-6 rounded-lg p-4 ${
-              result.errors > 0 ? 'bg-yellow-50 text-yellow-800' : 'bg-green-50 text-green-800'
-            }`}
-          >
-            <p className="font-medium">{result.message}</p>
+      <div className="max-w-3xl mx-auto">
+        <div className="card">
+          {/* Instructions */}
+          <div className="mb-8 p-6 bg-primary-50 border-2 border-primary-200 rounded-xl">
+            <h2 className="text-lg font-bold text-primary-900 mb-4 flex items-center gap-2">
+              <span className="text-2xl">📋</span>
+              Langkah-langkah Upload
+            </h2>
+            <ol className="space-y-3 text-neutral-700">
+              {[
+                'Dapatkan Excel terkini dari sistem KPM (format JBA1010)',
+                'Pilih fail Excel di bawah',
+                'Klik Upload & Sync',
+                'Tunggu proses selesai (murid baru akan dibuat, kelas akan dikemaskini)',
+              ].map((step, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-600 text-white text-sm font-bold flex-shrink-0">
+                    {i + 1}
+                  </span>
+                  <span className="flex-1">{step}</span>
+                </li>
+              ))}
+            </ol>
           </div>
-        )}
 
-        <div className="flex gap-4">
-          <button
-            onClick={handleUpload}
-            disabled={!file || uploading}
-            className="flex-1 rounded-lg bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {uploading ? 'Memproses...' : 'Upload & Sync'}
-          </button>
-          <button
-            onClick={() => router.push('/pentadbir')}
-            className="rounded-lg border border-gray-300 px-6 py-3 font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Batal
-          </button>
-        </div>
+          {/* File Upload */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-neutral-700 mb-3">
+              Pilih Fail Excel (.xlsx)
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleFileChange}
+                disabled={uploading}
+                className="w-full px-4 py-3 border-2 border-dashed border-neutral-300 rounded-xl cursor-pointer
+                  file:mr-4 file:px-4 file:py-2 file:rounded-lg file:border-0 
+                  file:bg-primary-600 file:text-white file:font-medium file:cursor-pointer
+                  hover:file:bg-primary-700 hover:border-primary-400
+                  focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  transition-all duration-200"
+              />
+            </div>
+            {file && (
+              <div className="mt-3 p-3 bg-accent-50 border border-accent-200 rounded-lg flex items-center gap-3">
+                <span className="text-2xl">📄</span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-neutral-900">{file.name}</p>
+                  <p className="text-xs text-neutral-600">{(file.size / 1024).toFixed(1)} KB</p>
+                </div>
+                <button
+                  onClick={() => setFile(null)}
+                  className="text-neutral-400 hover:text-red-600 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
 
-        <div className="mt-8 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
-          <p className="mb-2 font-medium">Nota Penting:</p>
-          <ul className="list-disc space-y-1 pl-5">
-            <li>Murid baru akan dapat email: <code className="rounded bg-gray-200 px-1">{'{6_digit_ic}@student.smkkj.edu.my'}</code></li>
-            <li>Password default: <code className="rounded bg-gray-200 px-1">skmkj@1010.murid1234</code></li>
-            <li>Murid mesti tukar password pada login pertama</li>
-            <li>Murid yang tidak ada dalam Excel <strong>tidak akan didelete</strong> (safety)</li>
-            <li>Proses mungkin ambil masa 1-3 minit untuk ratusan murid</li>
-          </ul>
+          {/* Result */}
+          {result && (
+            <div
+              className={`mb-6 p-4 rounded-xl border-2 ${
+                result.errors > 0 
+                  ? 'bg-yellow-50 border-yellow-200' 
+                  : 'bg-accent-50 border-accent-200'
+              }`}
+            >
+              <p className={`font-semibold ${result.errors > 0 ? 'text-yellow-900' : 'text-accent-900'}`}>
+                {result.message}
+              </p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-4">
+            <button
+              onClick={handleUpload}
+              disabled={!file || uploading}
+              className="btn-primary flex-1"
+            >
+              {uploading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Memproses...
+                </span>
+              ) : (
+                '📤 Upload & Sync'
+              )}
+            </button>
+            <button
+              onClick={() => router.push('/pentadbir')}
+              className="btn-secondary"
+            >
+              Batal
+            </button>
+          </div>
+
+          {/* Important Notes */}
+          <div className="mt-8 p-6 bg-neutral-50 border border-neutral-200 rounded-xl">
+            <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+              <span className="text-xl">💡</span>
+              Nota Penting
+            </h3>
+            <ul className="space-y-2 text-sm text-neutral-600">
+              {[
+                { icon: '📧', text: 'Murid baru akan dapat email: {6_digit_ic}@student.smkkj.edu.my' },
+                { icon: '🔑', text: 'Password default: skmkj@1010.murid1234' },
+                { icon: '🔒', text: 'Murid mesti tukar password pada login pertama' },
+                { icon: '⚠️', text: 'Murid yang tidak ada dalam Excel tidak akan didelete (safety)' },
+                { icon: '⏱️', text: 'Proses mungkin ambil masa 1-3 minit untuk ratusan murid' },
+              ].map((note, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="text-base flex-shrink-0">{note.icon}</span>
+                  <span className="flex-1">{note.text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </PortalShell>

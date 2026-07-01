@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
+import { PortalShell, StatCard } from '@/components/portal-shell'
 
 type PointsTracker = {
   total_points: number
@@ -75,159 +76,110 @@ export default function MuridDashboard() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Memuatkan...</p>
+      <PortalShell title="Dashboard Murid">
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
+            <p className="text-neutral-600">Memuatkan...</p>
+          </div>
         </div>
-      </div>
+      </PortalShell>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">S.T.A.R KJo</h1>
-            <p className="text-sm text-gray-600">{profile?.full_name} • {profile?.class_name}</p>
+    <PortalShell title="Dashboard Murid" subtitle="Pantau perkembangan dan refleksi harian anda">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <StatCard 
+          label="Streak Harian" 
+          value={points?.current_streak || 0}
+          icon="🔥"
+          tone="orange"
+          subtitle={`Rekod terbaik: ${points?.longest_streak || 0} hari`}
+        />
+        
+        <StatCard 
+          label="Total Mata" 
+          value={points?.total_points || 0}
+          icon="⭐"
+          tone="green"
+        />
+        
+        <StatCard 
+          label="Skor Hari Ini" 
+          value={todayCheckin ? `${todayCheckin.total_score?.toFixed(0)}%` : '--'}
+          icon="📊"
+          tone={todayCheckin ? 'blue' : 'red'}
+          subtitle={todayCheckin ? '✓ Sudah isi' : 'Belum isi'}
+        />
+      </div>
+
+      {/* Action Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="card">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-100 text-4xl mb-4">
+              📝
+            </div>
+            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Refleksi Harian</h2>
+            <p className="text-neutral-600">
+              {todayCheckin 
+                ? 'Anda sudah mengisi refleksi hari ini. Terima kasih!'
+                : 'Luangkan 2 minit untuk refleksi hari ini'}
+            </p>
           </div>
+          
           <button
-            onClick={() => supabase.auth.signOut()}
-            className="text-sm text-gray-600 hover:text-gray-900"
+            onClick={() => router.push('/murid/refleksi')}
+            disabled={!!todayCheckin}
+            className={todayCheckin ? 'btn-secondary w-full opacity-50 cursor-not-allowed' : 'btn-primary w-full'}
           >
-            Log Keluar
+            {todayCheckin ? '✓ Sudah Selesai Hari Ini' : 'Mula Refleksi'}
           </button>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Streak Harian</p>
-                <p className="text-3xl font-bold text-blue-600">{points?.current_streak || 0}</p>
-                <p className="text-xs text-gray-500 mt-1">Rekod: {points?.longest_streak || 0} hari</p>
-              </div>
-              <div className="text-4xl">🔥</div>
+        <div className="card">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent-100 text-4xl mb-4">
+              📅
             </div>
+            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Tempah Sesi</h2>
+            <p className="text-neutral-600">
+              Perlukan bimbingan atau kaunseling? Tempah sesi dengan GBK
+            </p>
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Mata</p>
-                <p className="text-3xl font-bold text-green-600">{points?.total_points || 0}</p>
-              </div>
-              <div className="text-4xl">⭐</div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Skor Hari Ini</p>
-                {todayCheckin ? (
-                  <>
-                    <p className="text-3xl font-bold text-purple-600">
-                      {todayCheckin.total_score?.toFixed(0)}%
-                    </p>
-                    <p className="text-xs text-green-600 mt-1">✓ Sudah isi</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-3xl font-bold text-gray-400">--</p>
-                    <p className="text-xs text-orange-600 mt-1">Belum isi</p>
-                  </>
-                )}
-              </div>
-              <div className="text-4xl">📊</div>
-            </div>
-          </div>
+          
+          <button
+            onClick={() => router.push('/murid/tempah-sesi')}
+            className="btn-primary w-full bg-accent-600 hover:bg-accent-700 focus:ring-accent-200"
+          >
+            Tempah Sekarang
+          </button>
         </div>
+      </div>
 
-        {/* Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="text-center mb-6">
-              <div className="text-6xl mb-4">📝</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Refleksi Harian</h2>
-              <p className="text-gray-600">
-                {todayCheckin 
-                  ? 'Anda sudah mengisi refleksi hari ini. Terima kasih!'
-                  : 'Luangkan 2 minit untuk refleksi hari ini'}
-              </p>
-            </div>
-            
+      {/* Quick Links */}
+      <div>
+        <h3 className="text-lg font-semibold text-neutral-900 mb-4">Akses Pantas</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { icon: '📈', label: 'Sejarah Refleksi', path: '/murid/sejarah' },
+            { icon: '🏆', label: 'Lencana Saya', path: '/murid/lencana' },
+            { icon: '📆', label: 'Sesi Kaunseling', path: '/murid/sesi' },
+            { icon: '👤', label: 'Profil', path: '/murid/profil' },
+          ].map((link) => (
             <button
-              onClick={() => router.push('/murid/refleksi')}
-              disabled={!!todayCheckin}
-              className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                todayCheckin
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              key={link.path}
+              onClick={() => router.push(link.path)}
+              className="card text-center hover:shadow-strong hover:border-primary-200 transition-all duration-200 group"
             >
-              {todayCheckin ? 'Sudah Selesai Hari Ini' : 'Mula Refleksi'}
+              <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{link.icon}</div>
+              <p className="text-sm font-semibold text-neutral-700 group-hover:text-primary-600 transition-colors">{link.label}</p>
             </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="text-center mb-6">
-              <div className="text-6xl mb-4">📅</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tempah Sesi</h2>
-              <p className="text-gray-600">
-                Perlukan bimbingan atau kaunseling? Tempah sesi dengan GBK
-              </p>
-            </div>
-            
-            <button
-              onClick={() => router.push('/murid/tempah-sesi')}
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
-            >
-              Tempah Sekarang
-            </button>
-          </div>
+          ))}
         </div>
-
-        {/* Quick Links */}
-        <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button
-            onClick={() => router.push('/murid/sejarah')}
-            className="bg-white rounded-lg shadow p-4 text-center hover:shadow-md transition-shadow"
-          >
-            <div className="text-3xl mb-2">📈</div>
-            <p className="text-sm font-medium text-gray-900">Sejarah Refleksi</p>
-          </button>
-
-          <button
-            onClick={() => router.push('/murid/lencana')}
-            className="bg-white rounded-lg shadow p-4 text-center hover:shadow-md transition-shadow"
-          >
-            <div className="text-3xl mb-2">🏆</div>
-            <p className="text-sm font-medium text-gray-900">Lencana Saya</p>
-          </button>
-
-          <button
-            onClick={() => router.push('/murid/sesi')}
-            className="bg-white rounded-lg shadow p-4 text-center hover:shadow-md transition-shadow"
-          >
-            <div className="text-3xl mb-2">📆</div>
-            <p className="text-sm font-medium text-gray-900">Sesi Kaunseling</p>
-          </button>
-
-          <button
-            onClick={() => router.push('/murid/profil')}
-            className="bg-white rounded-lg shadow p-4 text-center hover:shadow-md transition-shadow"
-          >
-            <div className="text-3xl mb-2">👤</div>
-            <p className="text-sm font-medium text-gray-900">Profil</p>
-          </button>
-        </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   )
 }

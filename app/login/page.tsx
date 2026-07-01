@@ -20,7 +20,6 @@ export default function LoginPage() {
 
     try {
       await signIn(identifier, password)
-      // Redirect handled by auth state change
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login gagal. Sila cuba lagi.')
@@ -30,17 +29,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-primary-50/30 to-accent-50/20 p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">S.T.A.R KJo</h1>
-            <p className="text-gray-600">Student Tracker Attitude Report</p>
+        {/* Logo & Title */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 text-white font-bold text-3xl shadow-strong mb-4">
+            S
           </div>
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2">S.T.A.R KJo</h1>
+          <p className="text-neutral-600 font-medium">Student Tracker Attitude Report</p>
+          <p className="text-sm text-neutral-500 mt-1">Sistem Pemantauan Tingkah Laku Murid</p>
+        </div>
 
+        {/* Login Card */}
+        <div className="card">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="identifier" className="block text-sm font-semibold text-neutral-700 mb-2">
                 IC / Email
               </label>
               <input
@@ -49,16 +54,17 @@ export default function LoginPage() {
                 placeholder="010345 atau email@smkkj.edu.my"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input-field"
                 required
+                disabled={loading}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Murid: 6 digit akhir IC • Guru/GBK: Email sekolah
+              <p className="text-xs text-neutral-500 mt-2">
+                <span className="font-medium">Murid:</span> 6 digit akhir IC • <span className="font-medium">Guru/GBK:</span> Email sekolah
               </p>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-neutral-700 mb-2">
                 Kata Laluan
               </label>
               <input
@@ -67,34 +73,47 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input-field"
                 required
+                disabled={loading}
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600">
-                {error}
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                <span className="text-red-600 text-lg">⚠️</span>
+                <p className="text-sm text-red-700 flex-1">{error}</p>
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="btn-primary w-full"
             >
-              {loading ? 'Memasuki...' : 'Log Masuk'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Memasuki...
+                </span>
+              ) : (
+                'Log Masuk'
+              )}
             </button>
           </form>
 
-          <div className="mt-6 border-t pt-6">
-            <p className="text-center text-sm font-medium text-gray-700 mb-3">Mode demo tanpa Supabase</p>
-            <div className="grid grid-cols-2 gap-2">
+          {/* Demo Mode */}
+          <div className="mt-8 pt-6 border-t border-neutral-200">
+            <p className="text-center text-sm font-semibold text-neutral-700 mb-4">Mode Demo (Tanpa Supabase)</p>
+            <div className="grid grid-cols-2 gap-3">
               {[
-                { label: 'Demo Murid', role: 'student' as const },
-                { label: 'Demo GBK', role: 'counselor' as const },
-                { label: 'Demo Guru', role: 'class_teacher' as const },
-                { label: 'Demo Ibu Bapa', role: 'parent' as const },
+                { label: 'Demo Murid', role: 'student' as const, icon: '👨‍🎓' },
+                { label: 'Demo GBK', role: 'counselor' as const, icon: '👨‍💼' },
+                { label: 'Demo Guru', role: 'class_teacher' as const, icon: '👨‍🏫' },
+                { label: 'Demo Ibu Bapa', role: 'parent' as const, icon: '👨‍👩‍👧' },
               ].map((item) => (
                 <button
                   key={item.role}
@@ -103,23 +122,30 @@ export default function LoginPage() {
                     demoSignIn(item.role)
                     router.push('/dashboard')
                   }}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  className="flex items-center gap-2 rounded-xl border-2 border-neutral-200 px-3 py-3 text-sm font-medium text-neutral-700 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
                 >
-                  {item.label}
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="flex-1 text-left">{item.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <Link href="/" className="text-blue-600 hover:underline">
+          <div className="mt-6 text-center">
+            <Link href="/" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
               ← Kembali ke halaman utama
             </Link>
           </div>
         </div>
 
-        <div className="mt-6 text-center text-xs text-gray-500">
-          <p>Untuk bantuan, hubungi pentadbir sekolah</p>
+        {/* Footer */}
+        <div className="mt-6 text-center">
+          <p className="text-xs text-neutral-500">
+            Untuk bantuan, hubungi pentadbir sekolah
+          </p>
+          <p className="text-xs text-neutral-400 mt-2">
+            SMK Kampung Jawa • Sistem S.T.A.R
+          </p>
         </div>
       </div>
     </div>
