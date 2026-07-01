@@ -46,12 +46,12 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="identifier" className="block text-sm font-semibold text-neutral-700 mb-2">
-                IC / Email
+                IC (Murid) / Email (Guru)
               </label>
               <input
                 id="identifier"
                 type="text"
-                placeholder="200106070282 atau email@skmkj.edu.my"
+                placeholder="200106070282"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="input-field"
@@ -59,7 +59,7 @@ export default function LoginPage() {
                 disabled={loading}
               />
               <p className="text-xs text-neutral-500 mt-2">
-                <span className="font-medium">Murid:</span> 12 digit IC • <span className="font-medium">Guru/GBK:</span> Email sekolah
+                <span className="font-medium">Murid:</span> 12 digit IC &nbsp;|&nbsp; <span className="font-medium">Guru/GBK:</span> Email sekolah
               </p>
             </div>
 
