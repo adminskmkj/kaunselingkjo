@@ -40,10 +40,11 @@ function parseExcel(filePath) {
   const sheetName = workbook.SheetNames[0]
   const sheet = workbook.Sheets[sheetName]
 
-  // KPM Excel has 6 metadata rows at the top — skip them
+  // KPM Excel has 5 metadata rows at the top — skip them
+  // Row 0: title, Row 1-4: metadata/blanks, Row 5: header, Row 6+: data
   const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1')
-  if (range.e.r > 6) {
-    range.s.r = 6 // header row
+  if (range.e.r > 5) {
+    range.s.r = 5 // header row
   }
   sheet['!ref'] = XLSX.utils.encode_range(range)
 

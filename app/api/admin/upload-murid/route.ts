@@ -32,12 +32,11 @@ function parseExcel(buffer: Buffer): StudentData[] {
   const sheetName = workbook.SheetNames[0]
   const sheet = workbook.Sheets[sheetName]
 
-  // KPM Excel ada 6 row metadata atas (tajuk, nama sekolah, kod, blank lines)
-  // Header sebenar di row 7 (index 6). Data start row 8 (index 7)
-  // Set range manually from row 7 onwards
+  // KPM Excel has 5 metadata rows at the top — skip them
+  // Row 0: title, Row 1-4: metadata/blanks, Row 5: header, Row 6+: data
   const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1')
-  if (range.e.r > 6) {
-    range.s.r = 6 // start from row 7 (header)
+  if (range.e.r > 5) {
+    range.s.r = 5 // header row (BIL | ID MURID | NAMA | ...)
   }
   sheet['!ref'] = XLSX.utils.encode_range(range)
 
