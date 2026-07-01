@@ -59,7 +59,7 @@ function parseExcel(buffer: Buffer): StudentData[] {
       ic_full: icFull,
       ic_6_digit: ic6,
       class_name: kelas || 'Tiada Kelas',
-      email: `${ic6}@student.smkkj.edu.my`,
+      email: `${ic6}@student.skmkj.edu.my`,
     })
   }
 

@@ -80,7 +80,7 @@ function parseExcel(filePath) {
       ic_6_digit: ic6,
       class_name: kelas || 'Tiada Kelas',
       jantina: jantina === 'LELAKI' ? 'L' : jantina === 'PEREMPUAN' ? 'P' : 'L',
-      email: `${ic6}@student.smkkj.edu.my`,
+      email: `${ic6}@student.skmkj.edu.my`,
     })
   }
 
