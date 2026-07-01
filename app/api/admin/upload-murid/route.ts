@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
             full_name: student.full_name,
             class_name: student.class_name,
             ic_or_student_id: student.ic_6_digit,
-            must_change_password: true,
+            must_change_password: false,
           })
 
           if (profileError) {

@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { signIn, demoSignIn } = useAuth()
+  const { signIn } = useAuth()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -51,7 +51,7 @@ export default function LoginPage() {
               <input
                 id="identifier"
                 type="text"
-                placeholder="010345 atau email@smkkj.edu.my"
+                placeholder="6 digit akhir IC atau email@smkkj.edu.my"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="input-field"
@@ -104,33 +104,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Demo Mode */}
-          <div className="mt-8 pt-6 border-t border-neutral-200">
-            <p className="text-center text-sm font-semibold text-neutral-700 mb-4">Mode Demo (Tanpa Supabase)</p>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'Demo Murid', role: 'student' as const, icon: '👨‍🎓' },
-                { label: 'Demo GBK', role: 'counselor' as const, icon: '👨‍💼' },
-                { label: 'Demo Guru', role: 'class_teacher' as const, icon: '👨‍🏫' },
-                { label: 'Demo Ibu Bapa', role: 'parent' as const, icon: '👨‍👩‍👧' },
-                { label: 'Demo Pentadbir', role: 'admin' as const, icon: '🔧' },
-              ].map((item) => (
-                <button
-                  key={item.role}
-                  type="button"
-                  onClick={() => {
-                    demoSignIn(item.role)
-                    router.push('/dashboard')
-                  }}
-                  className="flex items-center gap-2 rounded-xl border-2 border-neutral-200 px-3 py-3 text-sm font-medium text-neutral-700 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
-                >
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="flex-1 text-left">{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div className="mt-6 text-center">
             <Link href="/" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
