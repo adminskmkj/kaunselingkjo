@@ -150,10 +150,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (identifier: string, password: string) => {
-    const isIC = /^\d{6}$/.test(identifier)
+    const isIC = /^\d{12}$/.test(identifier)
     
     if (isIC) {
-      const email = `${identifier}@student.smkkj.edu.my`
+      const email = `${identifier}@student.skmkj.edu.my`
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
     } else {

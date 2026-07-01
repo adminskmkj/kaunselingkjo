@@ -51,7 +51,7 @@ export default function LoginPage() {
               <input
                 id="identifier"
                 type="text"
-                placeholder="6 digit akhir IC atau email@smkkj.edu.my"
+                placeholder="200106070282 atau email@skmkj.edu.my"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="input-field"
@@ -59,7 +59,7 @@ export default function LoginPage() {
                 disabled={loading}
               />
               <p className="text-xs text-neutral-500 mt-2">
-                <span className="font-medium">Murid:</span> 6 digit akhir IC • <span className="font-medium">Guru/GBK:</span> Email sekolah
+                <span className="font-medium">Murid:</span> 12 digit IC • <span className="font-medium">Guru/GBK:</span> Email sekolah
               </p>
             </div>
 

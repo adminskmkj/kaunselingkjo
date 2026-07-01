@@ -38,14 +38,10 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 const DEFAULT_PASSWORD = 'skmkj@1010.murid1234'
 
-function extractIC6Digit(icFull) {
-  // IC format: YYMMDDPBXXXX
-  // Ambil 6 digit akhir: PBXXXX
+function cleanIC(icFull) {
+  // Return full 12-digit IC for unique identification
   const cleaned = String(icFull).replace(/[^0-9]/g, '')
-  if (cleaned.length >= 6) {
-    return cleaned.slice(-6)
-  }
-  return cleaned // fallback
+  return cleaned.length >= 12 ? cleaned : null
 }
 
 function parseExcel(filePath) {
@@ -82,8 +78,8 @@ function parseExcel(filePath) {
 
     if (!nama || !icFull) continue
 
-    const ic6 = extractIC6Digit(icFull)
-    if (!ic6 || ic6.length < 6) {
+    const ic6 = cleanIC(icFull)
+    if (!ic6 || ic6.length < 12) {
       console.warn(`⚠️  Skip ${nama}: IC tidak sah (${icFull})`)
       continue
     }

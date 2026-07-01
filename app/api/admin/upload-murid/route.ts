@@ -14,9 +14,9 @@ function getSupabase() {
 }
 const DEFAULT_PASSWORD = 'skmkj@1010.murid1234'
 
-function extractIC6Digit(icFull: string): string {
+function cleanIC(icFull: string): string | null {
   const cleaned = String(icFull).replace(/[^0-9]/g, '')
-  return cleaned.length >= 6 ? cleaned.slice(-6) : cleaned
+  return cleaned.length >= 12 ? cleaned : null
 }
 
 type StudentData = {
@@ -51,8 +51,8 @@ function parseExcel(buffer: Buffer): StudentData[] {
 
     if (!nama || !icFull) continue
 
-    const ic6 = extractIC6Digit(icFull)
-    if (!ic6 || ic6.length < 6) continue
+    const ic6 = cleanIC(icFull)
+    if (!ic6 || ic6.length < 12) continue
 
     students.push({
       full_name: nama,
