@@ -9,7 +9,8 @@
     "lint": "next lint",
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
-    "upload-murid": "node scripts/upload-murid.js"
+    "upload-murid": "node scripts/upload-murid.js",
+    "cleanup-students": "node scripts/cleanup-students.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
