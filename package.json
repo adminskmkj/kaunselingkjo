@@ -10,7 +10,8 @@
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
     "upload-murid": "node scripts/upload-murid.js",
-    "cleanup-students": "node scripts/cleanup-students.js"
+    "cleanup-students": "node scripts/cleanup-students.js",
+    "create-staff": "node scripts/create-staff.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",

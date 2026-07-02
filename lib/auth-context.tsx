@@ -162,18 +162,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
 
-    // Fetch profile immediately so state is ready before redirect
     if (data.user) {
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', data.user.id)
         .single()
-      
-      if (profileData) {
-        setUser(data.user)
-        setProfile(profileData)
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError)
+        await supabase.auth.signOut()
+        if (profileError.message?.includes('infinite recursion')) {
+          throw new Error(
+            'Ralat pangkalan data (RLS). Pentadbir perlu run migration 004 di Supabase SQL Editor.'
+          )
+        }
+        throw new Error(
+          'Login berjaya tetapi profil tidak dijumpai. Hubungi pentadbir untuk daftar peranan (GBK/guru).'
+        )
       }
+
+      if (!profileData) {
+        await supabase.auth.signOut()
+        throw new Error('Akaun tiada profil. GBK/guru perlu didaftarkan oleh pentadbir.')
+      }
+
+      setUser(data.user)
+      setProfile(profileData)
     }
   }
 
