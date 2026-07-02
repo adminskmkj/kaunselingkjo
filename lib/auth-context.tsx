@@ -152,13 +152,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (identifier: string, password: string) => {
     const isIC = /^\d{12}$/.test(identifier)
     
+    let email: string
     if (isIC) {
-      const email = `${identifier}@student.skmkj.edu.my`
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
+      email = `${identifier}@student.skmkj.edu.my`
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email: identifier, password })
-      if (error) throw error
+      email = identifier
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+
+    // Fetch profile immediately so state is ready before redirect
+    if (data.user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single()
+      
+      if (profileData) {
+        setUser(data.user)
+        setProfile(profileData)
+      }
     }
   }
 
