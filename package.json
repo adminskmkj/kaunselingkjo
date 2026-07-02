@@ -11,7 +11,9 @@
     "db:seed": "node scripts/seed.js",
     "upload-murid": "node scripts/upload-murid.js",
     "cleanup-students": "node scripts/cleanup-students.js",
-    "create-staff": "node scripts/create-staff.js"
+    "create-staff": "node scripts/create-staff.js",
+    "ensure-profile": "node scripts/ensure-user-profile.js",
+    "repair-profiles": "node scripts/repair-orphan-profiles.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
