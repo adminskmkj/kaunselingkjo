@@ -32,20 +32,20 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-/** Change email/password/nama here */
+/** Staff GBK SMK Kampung Jawa — edit jika perlu */
 const STAFF = [
   {
-    email: 'gbk@skmkj.edu.my',
-    password: 'GBK@skmkj2026',
+    email: 'ashraf@skmkj.edu.my',
+    password: 'Ashraf@Skmkj1010',
     role: 'counselor',
-    full_name: 'GBK SMK Kampung Jawa',
+    full_name: 'Ashraf (GBK)',
     class_name: null,
   },
   {
-    email: 'admin@skmkj.edu.my',
-    password: 'Admin@skmkj2026',
-    role: 'admin',
-    full_name: 'Pentadbir S.T.A.R KJo',
+    email: 'tasha@skmkj.edu.my',
+    password: 'Tasha@Skmkj1010',
+    role: 'counselor',
+    full_name: 'Tasha (GBK)',
     class_name: null,
   },
 ]
