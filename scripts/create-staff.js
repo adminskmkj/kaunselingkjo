@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
  * Create GBK / Guru / Admin staff accounts (Auth + profiles)
- * Usage: node scripts/create-staff.js
- *
- * Edit STAFF below before running.
+ * Usage:
+ *   $env:ASHRAF_PASSWORD="..."
+ *   $env:TASHA_PASSWORD="..."
+ *   node scripts/create-staff.js
  */
 
 const { createClient } = require('@supabase/supabase-js')
@@ -17,7 +18,9 @@ try {
     const trimmed = line.trim()
     if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
       const [key, ...rest] = trimmed.split('=')
-      process.env[key.trim()] = rest.join('=').trim()
+      if (!process.env[key.trim()]) {
+        process.env[key.trim()] = rest.join('=').trim()
+      }
     }
   })
 } catch (_) {}
@@ -30,25 +33,34 @@ if (!supabaseUrl || !supabaseServiceKey) {
   process.exit(1)
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-/** Staff GBK SMK Kampung Jawa — edit jika perlu */
+/** Passwords dibaca dari env — JANGAN hardcode di sini */
 const STAFF = [
   {
     email: 'ashraf@skmkj.edu.my',
-    password: 'Ashraf@Skmkj1010',
+    password: process.env.ASHRAF_PASSWORD,
     role: 'counselor',
     full_name: 'Ashraf (GBK)',
     class_name: null,
   },
   {
     email: 'tasha@skmkj.edu.my',
-    password: 'Tasha@Skmkj1010',
+    password: process.env.TASHA_PASSWORD,
     role: 'counselor',
     full_name: 'Tasha (GBK)',
     class_name: null,
   },
 ]
+
+// Validate passwords dari env
+for (const s of STAFF) {
+  if (!s.password) {
+    console.error(`❌ Password untuk ${s.email} tidak ditemui.`)
+    console.error(`   Set env: $env:${s.email.split('@')[0].toUpperCase()}_PASSWORD="kata_laluan_baru"`)
+    process.exit(1)
+  }
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 async function upsertStaff(member) {
   const { data: list } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
@@ -57,13 +69,17 @@ async function upsertStaff(member) {
   let userId
   if (existing) {
     userId = existing.id
-    await supabase.auth.admin.updateUserById(userId, { password: member.password })
-    console.log(`   ♻️  Auth exists: ${member.email} (password updated)`)
+    await supabase.auth.admin.updateUserById(userId, {
+      password: member.password,
+      user_metadata: { role: member.role, full_name: member.full_name, class_name: member.class_name },
+    })
+    console.log(`   ♻️  Auth exists: ${member.email} (password + metadata updated)`)
   } else {
     const { data, error } = await supabase.auth.admin.createUser({
       email: member.email,
       password: member.password,
       email_confirm: true,
+      user_metadata: { role: member.role, full_name: member.full_name, class_name: member.class_name },
     })
     if (error) throw new Error(`Auth: ${error.message}`)
     userId = data.user.id
@@ -97,9 +113,8 @@ async function main() {
     }
     console.log('')
   }
-  console.log('Done. Login at /login with EMAIL + password (not IC).')
-  console.log('\nDefault credentials (change in script if needed):')
-  STAFF.forEach(s => console.log(`  ${s.email} / ${s.password}`))
+  console.log('Done. Passwords were read from env and not printed.')
+  console.log('Login at /login with email + password.')
 }
 
 main().catch(e => {

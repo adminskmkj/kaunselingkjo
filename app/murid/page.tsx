@@ -41,13 +41,6 @@ export default function MuridDashboard() {
     if (!profile) return
 
     try {
-      if (profile.id.startsWith('demo-')) {
-        setPoints({ total_points: 120, current_streak: 7, longest_streak: 12 })
-        const demoToday = localStorage.getItem('star-kjo-demo-checkin-today')
-        setTodayCheckin(demoToday ? { id: 'demo-checkin', total_score: 88 } : null)
-        return
-      }
-
       // Fetch points tracker
       const { data: pointsData } = await supabase
         .from('points_tracker')

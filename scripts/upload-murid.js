@@ -10,6 +10,7 @@ const { createClient } = require('@supabase/supabase-js')
 const readline = require('readline')
 const fs = require('fs')
 const path = require('path')
+const crypto = require('crypto')
 
 // Load env from .env.local manually (dotenv require may not work in this context)
 try {
@@ -36,7 +37,25 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-const DEFAULT_PASSWORD = 'skmkj@1010.murid1234'
+function generateTempPassword() {
+  return `KJo-${crypto.randomBytes(5).toString('base64url')}`
+}
+
+function csvEscape(value) {
+  return `"${String(value ?? '').replace(/"/g, '""')}"`
+}
+
+function writePasswordSlips(createdRows) {
+  if (createdRows.length === 0) return null
+  const dir = path.resolve(__dirname, '..', 'tmp')
+  fs.mkdirSync(dir, { recursive: true })
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+  const outPath = path.join(dir, `password-slips-${stamp}.csv`)
+  const header = ['nama', 'kelas', 'ic', 'password_sementara'].join(',')
+  const lines = createdRows.map((r) => [r.full_name, r.class_name, r.ic, r.password].map(csvEscape).join(','))
+  fs.writeFileSync(outPath, [header, ...lines].join('\n'), 'utf8')
+  return outPath
+}
 
 function cleanIC(icFull) {
   // Return full 12-digit IC for unique identification
@@ -201,17 +220,22 @@ async function createStudents(students) {
 
   let successCount = 0
   let errorCount = 0
+  const passwordSlips = []
 
   for (const student of students) {
+    const tempPassword = generateTempPassword()
     try {
       // 1. Create auth user
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: student.email,
-        password: DEFAULT_PASSWORD,
+        password: tempPassword,
         email_confirm: true,
         user_metadata: {
+          role: 'student',
           full_name: student.full_name,
-          ic_6_digit: student.ic_6_digit,
+          class_name: student.class_name,
+          ic_or_student_id: student.ic_6_digit,
+          must_change_password: true,
         },
       })
 
@@ -228,13 +252,19 @@ async function createStudents(students) {
         full_name: student.full_name,
         class_name: student.class_name,
         ic_or_student_id: student.ic_6_digit,
-        must_change_password: false
+        must_change_password: true
       })
 
       if (profileError) {
         console.error(`   ❌ ${student.ic_6_digit} | ${student.full_name} | Profile error: ${profileError.message}`)
         errorCount++
       } else {
+        passwordSlips.push({
+          full_name: student.full_name,
+          class_name: student.class_name,
+          ic: student.ic_6_digit,
+          password: tempPassword,
+        })
         console.log(`   ✅ ${student.ic_6_digit} | ${student.full_name}`)
         successCount++
       }
@@ -244,7 +274,12 @@ async function createStudents(students) {
     }
   }
 
+  const slipsPath = writePasswordSlips(passwordSlips)
   console.log(`\n✅ Created: ${successCount} | ❌ Errors: ${errorCount}`)
+  if (slipsPath) {
+    console.log(`🔐 Password sementara unik disimpan: ${slipsPath}`)
+    console.log('   Cetak/edar slip secara terkawal. Jangan commit folder tmp/.')
+  }
 }
 
 async function updateStudents(students) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import * as XLSX from 'xlsx'
+import { randomBytes } from 'crypto'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -12,7 +13,9 @@ function getSupabase() {
   }
   return createClient(supabaseUrl, supabaseServiceKey)
 }
-const DEFAULT_PASSWORD = 'skmkj@1010.murid1234'
+function generateTempPassword() {
+  return `KJo-${randomBytes(5).toString('base64url')}`
+}
 
 function cleanIC(icFull: string): string | null {
   const cleaned = String(icFull).replace(/[^0-9]/g, '')
@@ -68,43 +71,11 @@ function parseExcel(buffer: Buffer): StudentData[] {
 
 export async function POST(req: NextRequest) {
   try {
-    // Simple admin auth: check API key from header OR allow any authenticated request
+    // Admin upload must use server-side API key. Supabase session cookie alone is not enough.
     const apiKey = req.headers.get('x-admin-key')
-    const cookieHeader = req.headers.get('cookie') || ''
 
-    // Accept either: valid API key OR request with Supabase session cookie
-    const hasCookie = cookieHeader.includes('sb-')
-    const hasApiKey = apiKey === ADMIN_API_KEY
-
-    if (!hasApiKey && !hasCookie) {
-      return NextResponse.json({ error: 'Unauthorized - tiada sesi login' }, { status: 401 })
-    }
-
-    // If cookie present, verify it's from admin
-    if (hasCookie && !hasApiKey) {
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      if (supabaseAnonKey) {
-        const userClient = createClient(supabaseUrl!, supabaseAnonKey, {
-          auth: { persistSession: false },
-        })
-        // Try get user from cookie
-        try {
-          const { data: { user }, error: userErr } = await userClient.auth.getUser()
-          if (userErr || !user) {
-            return NextResponse.json({ error: 'Sesi tamat. Sila log masuk semula.' }, { status: 401 })
-          }
-          const { data: profile } = await userClient
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single()
-          if (!profile || profile.role !== 'admin') {
-            return NextResponse.json({ error: 'Hanya pentadbir dibenarkan' }, { status: 403 })
-          }
-        } catch {
-          return NextResponse.json({ error: 'Ralat pengesahan. Guna API key.' }, { status: 401 })
-        }
-      }
+    if (apiKey !== ADMIN_API_KEY) {
+      return NextResponse.json({ error: 'Unauthorized - admin key diperlukan' }, { status: 401 })
     }
 
     const supabase = getSupabase()
@@ -151,13 +122,17 @@ export async function POST(req: NextRequest) {
       if (!existing) {
         // Create new student
         try {
+          const tempPassword = generateTempPassword()
           const { data: authData, error: authError } = await supabase.auth.admin.createUser({
             email: student.email,
-            password: DEFAULT_PASSWORD,
+            password: tempPassword,
             email_confirm: true,
             user_metadata: {
+              role: 'student',
               full_name: student.full_name,
-              ic_6_digit: student.ic_6_digit,
+              class_name: student.class_name,
+              ic_or_student_id: student.ic_6_digit,
+              must_change_password: true,
             },
           })
 

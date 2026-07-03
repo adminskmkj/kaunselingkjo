@@ -12,6 +12,8 @@ export default function DashboardPage() {
     if (!loading) {
       if (!profile) {
         router.push('/login')
+      } else if (profile.must_change_password) {
+        router.push('/reset-password')
       } else {
         // Redirect based on role
         switch (profile.role) {
