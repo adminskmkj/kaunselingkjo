@@ -12,7 +12,7 @@ type StudentRisk = {
   student_id: string
   full_name: string
   class_name: string | null
-  risk_level: RiskLevel
+  level: RiskLevel
   avg_score: number
   trend: number
   last_checkin: string
@@ -63,12 +63,12 @@ export default function GBKDashboardPage() {
       // Get all students with risk levels
       const { data: riskData, error: riskError } = await supabase
         .from('risk_levels')
-        .select('student_id, risk_level')
+        .select('student_id, level')
         .eq('is_active', true)
 
       if (riskError) throw riskError
 
-      type RiskRow = { student_id: string; risk_level: string }
+      type RiskRow = { student_id: string; level: string }
       const typedRiskData = (riskData || []) as RiskRow[]
 
       if (typedRiskData.length === 0) {
@@ -160,7 +160,7 @@ export default function GBKDashboardPage() {
           student_id: sid,
           full_name: profile?.full_name || 'Unknown',
           class_name: profile?.class_name || null,
-          risk_level: r.risk_level as RiskLevel,
+          level: r.level as RiskLevel,
           avg_score: Math.round(recentAvg),
           trend: Math.round(trend),
           last_checkin: stats?.last || '-',
@@ -170,7 +170,7 @@ export default function GBKDashboardPage() {
       // Sort
       const order: Record<RiskLevel, number> = { merah: 0, jingga: 1, kuning: 2, hijau: 3 }
       merged.sort((a, b) => {
-        const diff = order[a.risk_level] - order[b.risk_level]
+        const diff = order[a.level] - order[b.level]
         if (diff !== 0) return diff
         return a.avg_score - b.avg_score
       })
@@ -184,10 +184,10 @@ export default function GBKDashboardPage() {
   }
 
   const counts = {
-    hijau: students.filter((s) => s.risk_level === 'hijau').length,
-    kuning: students.filter((s) => s.risk_level === 'kuning').length,
-    jingga: students.filter((s) => s.risk_level === 'jingga').length,
-    merah: students.filter((s) => s.risk_level === 'merah').length,
+    hijau: students.filter((s) => s.level === 'hijau').length,
+    kuning: students.filter((s) => s.level === 'kuning').length,
+    jingga: students.filter((s) => s.level === 'jingga').length,
+    merah: students.filter((s) => s.level === 'merah').length,
   }
 
   const riskBadges: Record<RiskLevel, { bg: string; text: string; border: string }> = {
@@ -294,10 +294,10 @@ export default function GBKDashboardPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
-                          riskBadges[s.risk_level].bg
-                        } ${riskBadges[s.risk_level].text} ${riskBadges[s.risk_level].border}`}
+                          riskBadges[s.level].bg
+                        } ${riskBadges[s.level].text} ${riskBadges[s.level].border}`}
                       >
-                        {s.risk_level.toUpperCase()}
+                        {s.level.toUpperCase()}
                       </span>
                     </td>
                     <td className="px-6 py-4">
