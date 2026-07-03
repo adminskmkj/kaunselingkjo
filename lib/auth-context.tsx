@@ -56,8 +56,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) throw error
-      setProfile(data)
-      if (data.must_change_password && window.location.pathname !== '/reset-password') {
+      if (!data) throw new Error('Profil tidak dijumpai')
+
+      const profileData = data as unknown as Profile
+      setProfile(profileData)
+      if (profileData.must_change_password && window.location.pathname !== '/reset-password') {
         window.location.href = '/reset-password'
       }
     } catch (error) {
