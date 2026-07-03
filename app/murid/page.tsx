@@ -41,24 +41,26 @@ export default function MuridDashboard() {
     if (!profile) return
 
     try {
-      // Fetch points tracker
-      const { data: pointsData } = await supabase
+      // Fetch points tracker. Brand-new students may not have this row yet.
+      const { data: pointsData, error: pointsError } = await supabase
         .from('points_tracker')
         .select('*')
         .eq('student_id', profile.id)
-        .single()
+        .maybeSingle()
 
-      setPoints(pointsData)
+      if (pointsError) console.error('Error fetching points_tracker:', pointsError)
+      setPoints(pointsData || { total_points: 0, current_streak: 0, longest_streak: 0 })
 
-      // Check today's checkin
+      // Check today's checkin. 0 rows is normal before the student submits.
       const today = new Date().toISOString().split('T')[0]
-      const { data: checkinData } = await supabase
+      const { data: checkinData, error: checkinError } = await supabase
         .from('checkins')
         .select('id, total_score')
         .eq('student_id', profile.id)
         .eq('checkin_date', today)
-        .single()
+        .maybeSingle()
 
+      if (checkinError) console.error('Error fetching today checkin:', checkinError)
       setTodayCheckin(checkinData)
     } catch (error) {
       console.error('Error fetching data:', error)

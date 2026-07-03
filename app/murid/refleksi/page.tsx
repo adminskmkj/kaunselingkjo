@@ -5,8 +5,15 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 
-type SupabaseInsertClient = {
+type SupabaseCheckinClient = {
   from: (table: string) => {
+    select: (columns: string) => {
+      eq: (column: string, value: string) => {
+        eq: (column: string, value: string) => {
+          maybeSingle: () => Promise<{ data: { id: string } | null; error: Error | null }>
+        }
+      }
+    }
     insert: (payload: Record<string, unknown>) => Promise<{ error: Error | null }>
   }
 }
@@ -19,6 +26,7 @@ export default function RefleksiPage() {
   const { profile, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [formError, setFormError] = useState('')
 
   // Form state
   const [q1, setQ1] = useState<number>(3)
@@ -42,14 +50,36 @@ export default function RefleksiPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError('')
+
+    if (!profile) {
+      setFormError('Sesi tidak sah. Sila login semula.')
+      return
+    }
+
     setLoading(true)
 
     try {
-      const { error } = await (supabase as unknown as SupabaseInsertClient)
+      const today = new Date().toISOString().split('T')[0]
+      const client = supabase as unknown as SupabaseCheckinClient
+      const { data: existing, error: existingError } = await client
+        .from('checkins')
+        .select('id')
+        .eq('student_id', profile.id)
+        .eq('checkin_date', today)
+        .maybeSingle()
+
+      if (existingError) throw existingError
+      if (existing) {
+        setFormError('Anda sudah mengisi refleksi hari ini. Sila kembali esok.')
+        return
+      }
+
+      const { error } = await client
         .from('checkins')
         .insert({
-          student_id: profile!.id,
-          checkin_date: new Date().toISOString().split('T')[0],
+          student_id: profile.id,
+          checkin_date: today,
           q1_kehadiran_ketepatan: q1,
           q2_pematuhan_peraturan: q2,
           q3_penyiapan_tugasan: q3,
@@ -70,7 +100,7 @@ export default function RefleksiPage() {
       }, 2000)
     } catch (error) {
       console.error('Error submitting checkin:', error)
-      alert('Gagal menyimpan refleksi. Sila cuba lagi.')
+      setFormError(error instanceof Error ? error.message : 'Gagal menyimpan refleksi. Sila cuba lagi.')
     } finally {
       setLoading(false)
     }
@@ -251,6 +281,12 @@ export default function RefleksiPage() {
                 </div>
               </div>
             </div>
+
+            {formError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                {formError}
+              </div>
+            )}
 
             {/* Submit */}
             <div className="flex gap-4 pt-6">
