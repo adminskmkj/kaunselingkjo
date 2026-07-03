@@ -187,8 +187,8 @@ export default function AdminUploadMuridPage() {
             </h3>
             <ul className="space-y-2 text-sm text-neutral-600">
               {[
-                { icon: '📧', text: 'Murid login guna 12 digit IC + password default' },
-                { icon: '🔑', text: 'Password default: skmkj@1010.murid1234' },
+                { icon: '📧', text: 'Murid login guna 12 digit IC + password sementara unik' },
+                { icon: '🔑', text: 'Password sementara dijana semasa upload; cetak slip CSV dari output admin/CLI' },
                 { icon: '⚠️', text: 'Murid yang tidak ada dalam Excel tidak akan didelete (safety)' },
                 { icon: '⏱️', text: 'Proses mungkin ambil masa 1-3 minit untuk ratusan murid' },
               ].map((note, i) => (
