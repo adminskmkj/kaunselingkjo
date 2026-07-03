@@ -69,21 +69,23 @@ export default function GuruDashboardPage() {
       const studentList = profileData || []
 
       // points
-      const { data: pointsData } = await supabase
+      const { data: pointsRaw } = await supabase
         .from('points_tracker')
         .select('student_id, total_points, current_streak')
 
+      const pointsData = (pointsRaw || []) as { student_id: string; total_points: number; current_streak: number }[]
       const pointsMap: Record<string, { total_points: number; current_streak: number }> = {}
-      for (const p of pointsData || []) pointsMap[p.student_id] = p
+      for (const p of pointsData) pointsMap[p.student_id] = p
 
       // risk
-      const { data: riskData } = await supabase
+      const { data: riskRaw } = await supabase
         .from('risk_levels')
         .select('student_id, level')
         .eq('is_active', true)
 
+      const riskData = (riskRaw || []) as { student_id: string; level: string }[]
       const riskMap: Record<string, string> = {}
-      for (const r of riskData || []) riskMap[r.student_id] = r.level
+      for (const r of riskData) riskMap[r.student_id] = r.level
 
       setStudents(
         studentList.map((s) => ({
