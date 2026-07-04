@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { PortalShell, StatCard } from '@/components/portal-shell'
+import { ModalOverlay } from '@/components/modal-overlay'
 import { useReachOutBadges } from '@/lib/use-reach-out-badges'
 import { CheckCircle2, AlertCircle, AlertTriangle, XCircle } from 'lucide-react'
 
@@ -370,142 +371,137 @@ export default function GBKDashboardPage() {
         )}
       </section>
 
-      {riskListLevel && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setRiskListLevel(null)}
-        >
-          <div
-            className="max-h-[85vh] w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="border-b border-neutral-100 px-6 py-4">
-              <h2 className="text-xl font-bold text-neutral-900">{riskLevelTitles[riskListLevel]}</h2>
-              <p className="mt-1 text-sm text-neutral-500">
-                {studentsInLevel(riskListLevel).length} murid dalam kategori ini
-              </p>
-            </div>
-            <ul className="max-h-[60vh] overflow-y-auto divide-y divide-neutral-100">
-              {studentsInLevel(riskListLevel).length === 0 ? (
-                <li className="px-6 py-10 text-center text-sm text-neutral-500">Tiada murid dalam kategori ini.</li>
-              ) : (
-                studentsInLevel(riskListLevel).map((s) => (
-                  <li key={s.student_id} className="flex items-center justify-between gap-3 px-6 py-4 hover:bg-neutral-50">
-                    <div className="min-w-0">
-                      <p className="font-semibold text-neutral-900">{s.full_name}</p>
-                      <p className="text-sm text-neutral-500">{s.class_name || 'Kelas tidak ditetapkan'}</p>
-                      <p className="mt-1 text-xs text-neutral-400">
-                        Skor emosi (7h): {s.avg_score}% · refleksi terakhir: {s.last_checkin}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRiskListLevel(null)
-                        openInterventionModal(s)
-                      }}
-                      className="btn-primary shrink-0 text-xs py-2 px-3"
-                    >
-                      Intervensi
-                    </button>
-                  </li>
-                ))
-              )}
-            </ul>
-            <div className="border-t border-neutral-100 px-6 py-4">
-              <button type="button" onClick={() => setRiskListLevel(null)} className="btn-secondary w-full">
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Intervention Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl shadow-strong p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold text-neutral-900 mb-6">Rekod Intervensi</h2>
-            <form onSubmit={handleSubmitIntervention} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-neutral-700 mb-2">Murid</label>
-                <input type="text" value={form.student_name} disabled className="input bg-neutral-100" />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-neutral-700 mb-2">Jenis Intervensi</label>
-                <select
-                  value={form.intervention_type}
-                  onChange={(e) => setForm({ ...form, intervention_type: e.target.value })}
-                  className="input"
-                  required
+      <ModalOverlay
+        open={riskListLevel !== null}
+        onClose={() => setRiskListLevel(null)}
+        title={riskListLevel ? riskLevelTitles[riskListLevel] : ''}
+        subtitle={
+          riskListLevel
+            ? `${studentsInLevel(riskListLevel).length} murid dalam kategori ini`
+            : undefined
+        }
+        size="md"
+        footer={
+          <button type="button" onClick={() => setRiskListLevel(null)} className="btn-secondary w-full">
+            Tutup
+          </button>
+        }
+      >
+        <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-100">
+          {riskListLevel && studentsInLevel(riskListLevel).length === 0 ? (
+            <li className="px-4 py-10 text-center text-sm text-neutral-500">Tiada murid dalam kategori ini.</li>
+          ) : (
+            riskListLevel &&
+            studentsInLevel(riskListLevel).map((s) => (
+              <li key={s.student_id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="font-semibold text-neutral-900">{s.full_name}</p>
+                  <p className="text-sm text-neutral-500">{s.class_name || 'Kelas tidak ditetapkan'}</p>
+                  <p className="mt-1 text-xs text-neutral-400">
+                    Skor emosi (7h): {s.avg_score}% · refleksi terakhir: {s.last_checkin}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRiskListLevel(null)
+                    openInterventionModal(s)
+                  }}
+                  className="btn-primary shrink-0 text-xs py-2 px-3 sm:w-auto w-full"
                 >
-                  <option value="kaunseling individu">Kaunseling Individu</option>
-                  <option value="bimbingan kumpulan">Bimbingan Kumpulan</option>
-                  <option value="motivasi">Motivasi</option>
-                  <option value="rujukan ibu bapa">Rujukan Ibu Bapa</option>
-                  <option value="lain-lain">Lain-lain</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-neutral-700 mb-2">Objektif</label>
-                <textarea
-                  value={form.objective}
-                  onChange={(e) => setForm({ ...form, objective: e.target.value })}
-                  className="input"
-                  rows={2}
-                  placeholder="Contoh: Bantu murid atasi masalah disiplin"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-neutral-700 mb-2">Ringkasan Sesi</label>
-                <textarea
-                  value={form.summary}
-                  onChange={(e) => setForm({ ...form, summary: e.target.value })}
-                  className="input"
-                  rows={3}
-                  placeholder="Apa yang dibincangkan..."
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-neutral-700 mb-2">Tindakan Susulan</label>
-                <textarea
-                  value={form.follow_up_action}
-                  onChange={(e) => setForm({ ...form, follow_up_action: e.target.value })}
-                  className="input"
-                  rows={2}
-                  placeholder="Contoh: Pantau 2 minggu, jumpa ibu bapa"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-neutral-700 mb-2">Rujukan Kepada (opsyen)</label>
-                <input
-                  type="text"
-                  value={form.referral_to}
-                  onChange={(e) => setForm({ ...form, referral_to: e.target.value })}
-                  className="input"
-                  placeholder="Contoh: Ibu bapa, pakar psikologi"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1" disabled={submitting}>
-                  Batal
+                  Intervensi
                 </button>
-                <button type="submit" className="btn-primary flex-1" disabled={submitting}>
-                  {submitting ? 'Menyimpan...' : 'Simpan'}
-                </button>
-              </div>
-            </form>
+              </li>
+            ))
+          )}
+        </ul>
+      </ModalOverlay>
+
+      <ModalOverlay
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title="Rekod Intervensi"
+        subtitle={form.student_name ? `Murid: ${form.student_name}` : undefined}
+        footer={
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1" disabled={submitting}>
+              Batal
+            </button>
+            <button type="submit" form="gbk-intervention-form" className="btn-primary flex-1" disabled={submitting}>
+              {submitting ? 'Menyimpan...' : 'Simpan'}
+            </button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <form id="gbk-intervention-form" onSubmit={handleSubmitIntervention} className="space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-neutral-700">Murid</label>
+            <input type="text" value={form.student_name} disabled className="input bg-neutral-100" />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-neutral-700">Jenis Intervensi</label>
+            <select
+              value={form.intervention_type}
+              onChange={(e) => setForm({ ...form, intervention_type: e.target.value })}
+              className="input"
+              required
+            >
+              <option value="kaunseling individu">Kaunseling Individu</option>
+              <option value="bimbingan kumpulan">Bimbingan Kumpulan</option>
+              <option value="motivasi">Motivasi</option>
+              <option value="rujukan ibu bapa">Rujukan Ibu Bapa</option>
+              <option value="lain-lain">Lain-lain</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-neutral-700">Objektif</label>
+            <textarea
+              value={form.objective}
+              onChange={(e) => setForm({ ...form, objective: e.target.value })}
+              className="input min-h-[80px]"
+              rows={2}
+              placeholder="Contoh: Bantu murid atasi masalah disiplin"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-neutral-700">Ringkasan Sesi</label>
+            <textarea
+              value={form.summary}
+              onChange={(e) => setForm({ ...form, summary: e.target.value })}
+              className="input min-h-[100px]"
+              rows={3}
+              placeholder="Apa yang dibincangkan..."
+              required
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-neutral-700">Tindakan Susulan</label>
+            <textarea
+              value={form.follow_up_action}
+              onChange={(e) => setForm({ ...form, follow_up_action: e.target.value })}
+              className="input min-h-[80px]"
+              rows={2}
+              placeholder="Contoh: Pantau 2 minggu, jumpa ibu bapa"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-neutral-700">Rujukan Kepada (opsyen)</label>
+            <input
+              type="text"
+              value={form.referral_to}
+              onChange={(e) => setForm({ ...form, referral_to: e.target.value })}
+              className="input"
+              placeholder="Contoh: Ibu bapa, pakar psikologi"
+            />
+          </div>
+        </form>
+      </ModalOverlay>
     </PortalShell>
   )
 }
