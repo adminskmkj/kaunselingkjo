@@ -8,8 +8,9 @@
 ## Langkah (Supabase Dashboard)
 
 1. Buka projek Supabase STAR-KJo → **SQL Editor** → **New query**.
-2. Salin **keseluruhan** fail:
-   `supabase/migrations/010_separate_checkin_scores.sql`
+2. Salin **keseluruhan** fail (pilih satu):
+   - **`supabase/migrations/010_apply_safe.sql`** ← **disyorkan** (duplicate risk / lajur belum wujud / separuh gagal)
+   - atau `010_separate_checkin_scores.sql` (fresh install sahaja)
 3. Klik **Run** (satu shot). Tunggu selesai tanpa error.
 4. Semak cepat:
 
@@ -42,7 +43,19 @@ Hard refresh: `https://kaunselingkjo.vercel.app`
 - `total_score` masih wujud (purata disiplin+emosi) untuk rujukan lama; **jangan** guna untuk risk.
 - Jika error “column already exists”, lajur mungkin dah apply — skip `ADD COLUMN` atau hubungi dev.
 
-## Susulan (belum dalam migration ini)
+## Jika error duplicate risk ATAU `emotional_score does not exist`
+
+Jalankan **satu fail**:
+
+**`supabase/migrations/010_apply_safe.sql`**
+
+(Jangan guna `010_fix_risk_backfill.sql` — tiada ADD COLUMN.)
+
+Kemudian semak:
+
+```sql
+SELECT level, COUNT(*) FROM risk_levels WHERE is_active = true GROUP BY level;
+```
 
 - Case Management UI (status kes)
 - Reach Out inbox

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
@@ -231,7 +232,7 @@ export default function GBKDashboardPage() {
       if (error) throw error
 
       setShowModal(false)
-      alert('✅ Rekod intervensi berjaya disimpan.')
+      alert('✅ Rekod intervensi disimpan (status: Baru). Urus status di Pengurusan Kes.')
       fetchStudents()
     } catch (error) {
       console.error('Error saving intervention:', error)
@@ -263,7 +264,12 @@ export default function GBKDashboardPage() {
 
       {/* Students Table */}
       <section className="card">
-        <h2 className="text-xl font-bold text-neutral-900 mb-6">Murid Perlu Perhatian</h2>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-neutral-900">Murid Perlu Perhatian</h2>
+          <Link href="/gbk/kes" className="btn-secondary text-sm py-2 px-4">
+            📋 Pengurusan Kes
+          </Link>
+        </div>
         {students.length === 0 ? (
           <p className="text-neutral-500 text-center py-8">Tiada data murid. Pastikan murid dah login dan isi refleksi.</p>
         ) : (

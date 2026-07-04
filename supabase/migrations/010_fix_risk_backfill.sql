@@ -1,0 +1,2 @@
+-- Guna fail ini: 010_apply_safe.sql (bukan fail ini)
+-- 010_fix_risk_backfill.sql lama — tiada ADD COLUMN, akan error 42703.

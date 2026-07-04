@@ -90,7 +90,7 @@ export type Database = {
           objective: string | null
           summary: string | null
           follow_up_action: string | null
-          case_status: 'baru' | 'dalam_tindakan' | 'selesai' | 'rujuk_luar'
+          case_status: 'baru' | 'dalam_tindakan' | 'susulan' | 'selesai' | 'rujuk_luar'
           referral_to: string | null
           created_at: string
           updated_at: string
@@ -183,7 +183,7 @@ export type Database = {
       user_role: 'student' | 'class_teacher' | 'discipline_teacher' | 'counselor' | 'admin' | 'parent'
       risk_level: 'hijau' | 'kuning' | 'jingga' | 'merah'
       record_type: 'attendance' | 'discipline_case' | 'merit' | 'cocurricular' | 'teacher_note' | 'self_reflection'
-      case_status: 'baru' | 'dalam_tindakan' | 'selesai' | 'rujuk_luar'
+      case_status: 'baru' | 'dalam_tindakan' | 'susulan' | 'selesai' | 'rujuk_luar'
       session_status: 'pending' | 'disahkan' | 'selesai' | 'dibatalkan'
       notification_type: 'reminder_checkin' | 'reminder_session' | 'alert_no_checkin' | 'motivational_message' | 'alert_risk_change'
       emotion_type: 'gembira' | 'sedih' | 'tertekan' | 'biasa'

@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { href: '/murid/lencana', label: 'Lencana', icon: '🏆', roles: ['student'] },
   { href: '/guru', label: 'Kelas Saya', icon: '👩‍🏫', roles: ['class_teacher', 'discipline_teacher', 'admin'] },
   { href: '/gbk', label: 'Pemantauan GBK', icon: '🧭', roles: ['counselor', 'admin'] },
+  { href: '/gbk/kes', label: 'Pengurusan Kes', icon: '📋', roles: ['counselor', 'admin'] },
   { href: '/ibu-bapa', label: 'Portal Ibu Bapa', icon: '👪', roles: ['parent', 'admin'] },
   { href: '/pentadbir', label: 'Pentadbir', icon: '⚙️', roles: ['admin'] },
   { href: '/pentadbir/upload-murid', label: 'Upload Murid', icon: '📤', roles: ['admin'] },

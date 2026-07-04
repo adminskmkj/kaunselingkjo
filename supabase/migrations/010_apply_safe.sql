@@ -1,14 +1,12 @@
--- 010_separate_checkin_scores.sql
--- Pisahkan skor disiplin (Bahagian A) dan emosi (Bahagian B + q7 + q10).
--- Risk level GBK berdasarkan emotional_score + isyarat explicit, BUKAN skor gabungan.
+-- 010_apply_safe.sql
+-- Jalankan SATU fail ini di Supabase jika:
+--   - 010 gagal duplicate risk, ATAU
+--   - error "emotional_score does not exist" (lajur belum wujud)
+-- Selamat di-run walaupun separuh 010 dah apply (IF NOT EXISTS / CREATE OR REPLACE).
 
 ALTER TABLE public.checkins
   ADD COLUMN IF NOT EXISTS discipline_score NUMERIC(5,2),
   ADD COLUMN IF NOT EXISTS emotional_score NUMERIC(5,2);
-
-COMMENT ON COLUMN public.checkins.discipline_score IS 'Bahagian A (q1-q5), 0-100%';
-COMMENT ON COLUMN public.checkins.emotional_score IS 'Bahagian B + emosi + bantuan (q6,q7,q8,q9,q10), 0-100%';
-COMMENT ON COLUMN public.checkins.total_score IS 'Legacy gabungan; jangan guna untuk risk. Sama (disiplin+emosi)/2 untuk rujukan.';
 
 CREATE OR REPLACE FUNCTION public.calculate_checkin_score()
 RETURNS TRIGGER AS $$
@@ -103,19 +101,14 @@ CREATE TRIGGER checkins_update_risk_level
     AFTER INSERT OR UPDATE ON public.checkins
     FOR EACH ROW EXECUTE FUNCTION public.calculate_risk_level_from_checkin();
 
--- Backfill skor (tanpa picu risk trigger — elak duplicate active)
+-- Backfill skor semua rekod (risk trigger OFF)
 ALTER TABLE public.checkins DISABLE TRIGGER checkins_update_risk_level;
 
 UPDATE public.checkins
-SET q1_kehadiran_ketepatan = q1_kehadiran_ketepatan
-WHERE discipline_score IS NULL OR emotional_score IS NULL;
-
--- Jika lajur wujud tetapi perlu kira semula semua rekod, jalankan sekali:
--- UPDATE public.checkins SET q1_kehadiran_ketepatan = COALESCE(q1_kehadiran_ketepatan, 0);
+SET q1_kehadiran_ketepatan = COALESCE(q1_kehadiran_ketepatan, 0);
 
 ALTER TABLE public.checkins ENABLE TRIGGER checkins_update_risk_level;
 
--- Satu risk aktif per murid (ikut checkin terkini)
 UPDATE public.risk_levels SET is_active = FALSE WHERE is_active = TRUE;
 
 WITH latest AS (
