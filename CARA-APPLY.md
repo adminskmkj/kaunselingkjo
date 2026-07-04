@@ -79,3 +79,9 @@ SELECT level, COUNT(*) FROM risk_levels WHERE is_active = true GROUP BY level;
 
 1. SQL Editor → **`supabase/migrations/015_parent_link_child_by_ic.sql`** → Run
 2. Ibu bapa: daftar akaun sendiri di `/daftar-akaun` → login → `/ibu-bapa` → boleh paut lebih daripada seorang anak guna **No. IC murid 12 digit**
+
+## Migration 016 (status kes GBK + history)
+
+1. SQL Editor → **`supabase/migrations/016_case_status_logs.sql`** → Run
+2. `/gbk/kes`: tukar status buka modal — **Dalam Tindakan** (tarikh sesi), **Susulan** (nota + tarikh), **Selesai** (penutup min 20 aksara), **Rujuk Luar** (agensi + tarikh)
+3. Butang **History** = timeline log; filter **Overdue** = tarikh susulan lepas

@@ -6,13 +6,16 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { PortalShell, StatCard } from '@/components/portal-shell'
+import { StatusChangeModal } from '@/components/status-change-modal'
+import { ModalOverlay } from '@/components/modal-overlay'
 import {
   CASE_STATUS_LABELS,
   CASE_STATUS_ORDER,
   CaseStatus,
   caseStatusBadgeClass,
 } from '@/lib/case-status'
-import { ClipboardList, ArrowLeft, CheckCircle2, Pin } from 'lucide-react'
+import { formatStatusLogLine, isCaseOverdue } from '@/lib/case-status-change'
+import { ClipboardList, ArrowLeft, CheckCircle2, Pin, AlertTriangle, History } from 'lucide-react'
 
 type CaseRow = {
   id: string
@@ -23,12 +26,24 @@ type CaseRow = {
   summary: string | null
   follow_up_action: string | null
   case_status: CaseStatus
+  tarikh_susulan: string | null
   updated_at: string
   student_name: string
   class_name: string | null
 }
 
-type FilterMode = 'aktif' | 'semua' | CaseStatus
+type StatusLog = {
+  id: string
+  from_status: CaseStatus | null
+  to_status: CaseStatus
+  nota: string | null
+  tarikh_susulan: string | null
+  agensi_rujukan: string | null
+  created_at: string
+  counselor_name: string
+}
+
+type FilterMode = 'aktif' | 'semua' | 'overdue' | CaseStatus
 
 export default function GBKCasesPage() {
   const router = useRouter()
@@ -37,6 +52,11 @@ export default function GBKCasesPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FilterMode>('aktif')
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [statusModalRow, setStatusModalRow] = useState<CaseRow | null>(null)
+  const [statusModalTo, setStatusModalTo] = useState<CaseStatus>('dalam_tindakan')
+  const [historyRow, setHistoryRow] = useState<CaseRow | null>(null)
+  const [historyLogs, setHistoryLogs] = useState<StatusLog[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   useEffect(() => {
     if (authLoading) return
@@ -59,7 +79,7 @@ export default function GBKCasesPage() {
       const { data: cases, error } = await (supabase as any)
         .from('intervention_records')
         .select(
-          'id, student_id, session_date, intervention_type, objective, summary, follow_up_action, case_status, updated_at'
+          'id, student_id, session_date, intervention_type, objective, summary, follow_up_action, case_status, tarikh_susulan, updated_at'
         )
         .order('updated_at', { ascending: false })
         .limit(200)
@@ -101,37 +121,105 @@ export default function GBKCasesPage() {
     }
   }
 
+  const overdueCount = useMemo(
+    () => rows.filter((r) => isCaseOverdue(r.case_status, r.tarikh_susulan)).length,
+    [rows]
+  )
+
   const filtered = useMemo(() => {
     if (filter === 'semua') return rows
     if (filter === 'aktif') return rows.filter((r) => r.case_status !== 'selesai')
+    if (filter === 'overdue') return rows.filter((r) => isCaseOverdue(r.case_status, r.tarikh_susulan))
     return rows.filter((r) => r.case_status === filter)
   }, [rows, filter])
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { aktif: 0 }
+    const c: Record<string, number> = { aktif: 0, overdue: overdueCount }
     CASE_STATUS_ORDER.forEach((s) => {
       c[s] = rows.filter((r) => r.case_status === s).length
     })
     c.aktif = rows.filter((r) => r.case_status !== 'selesai').length
     return c
-  }, [rows])
+  }, [rows, overdueCount])
 
-  async function updateStatus(id: string, case_status: CaseStatus) {
+  function openStatusModal(row: CaseRow, toStatus: CaseStatus) {
+    if (toStatus === row.case_status) return
+    setStatusModalRow(row)
+    setStatusModalTo(toStatus)
+  }
+
+  async function confirmStatusChange(payload: {
+    toStatus: CaseStatus
+    nota: string
+    tarikhSusulan: string
+    agensiRujukan: string
+  }) {
+    if (!statusModalRow) return
+    const id = statusModalRow.id
     setSavingId(id)
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
-        .from('intervention_records')
-        .update({ case_status })
-        .eq('id', id)
-
+      const { error } = await (supabase as any).rpc('change_case_status', {
+        p_case_id: id,
+        p_to_status: payload.toStatus,
+        p_nota: payload.nota || null,
+        p_tarikh_susulan: payload.tarikhSusulan || null,
+        p_agensi_rujukan: payload.agensiRujukan || null,
+      })
       if (error) throw error
-      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, case_status } : r)))
+      await fetchCases()
+      setStatusModalRow(null)
     } catch (e) {
       console.error(e)
-      alert('Gagal kemas kini status. Pastikan migration 011 (susulan) dah apply jika pilih Susulan.')
+      alert(e instanceof Error ? e.message : 'Gagal kemas kini status. Pastikan migration 016 dah apply.')
     } finally {
       setSavingId(null)
+    }
+  }
+
+  async function openHistory(row: CaseRow) {
+    setHistoryRow(row)
+    setHistoryLogs([])
+    setHistoryLoading(true)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: logs, error } = await (supabase as any)
+        .from('case_status_logs')
+        .select('id, from_status, to_status, nota, tarikh_susulan, agensi_rujukan, created_at, counselor_id')
+        .eq('case_id', row.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      const raw = (logs || []) as Array<{
+        id: string
+        from_status: CaseStatus | null
+        to_status: CaseStatus
+        nota: string | null
+        tarikh_susulan: string | null
+        agensi_rujukan: string | null
+        created_at: string
+        counselor_id: string | null
+      }>
+
+      const cids = [...new Set(raw.map((l) => l.counselor_id).filter(Boolean))] as string[]
+      let names = new Map<string, string>()
+      if (cids.length > 0) {
+        const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', cids)
+        names = new Map((profs || []).map((p: { id: string; full_name: string }) => [p.id, p.full_name]))
+      }
+
+      setHistoryLogs(
+        raw.map((l) => ({
+          ...l,
+          counselor_name: (l.counselor_id && names.get(l.counselor_id)) || 'GBK',
+        }))
+      )
+    } catch (e) {
+      console.error(e)
+      alert('Gagal muat history. Migration 016 perlu apply.')
+    } finally {
+      setHistoryLoading(false)
     }
   }
 
@@ -148,7 +236,7 @@ export default function GBKCasesPage() {
   return (
     <PortalShell
       title="Pengurusan Kes"
-      subtitle="Kitaran: Baru → Dalam Tindakan → Susulan → Selesai (atau Rujuk Luar)"
+      subtitle="Setiap perubahan status direkod — susulan, tarikh & penutup wajib ikut peraturan"
     >
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <Link
@@ -159,8 +247,15 @@ export default function GBKCasesPage() {
         </Link>
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-7">
         <StatCard label="Kes Aktif" value={counts.aktif} icon={<ClipboardList size={22} />} tone="blue" subtitle="Belum selesai" />
+        <StatCard
+          label="Overdue"
+          value={counts.overdue}
+          icon={<AlertTriangle size={22} />}
+          tone="red"
+          subtitle="Tarikh susulan lepas"
+        />
         {CASE_STATUS_ORDER.map((s) => (
           <StatCard
             key={s}
@@ -177,6 +272,7 @@ export default function GBKCasesPage() {
         {(
           [
             ['aktif', 'Kes Aktif'],
+            ['overdue', 'Overdue'],
             ['semua', 'Semua'],
             ...CASE_STATUS_ORDER.map((s) => [s, CASE_STATUS_LABELS[s]] as const),
           ] as const
@@ -186,7 +282,11 @@ export default function GBKCasesPage() {
             type="button"
             onClick={() => setFilter(key as FilterMode)}
             className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
-              filter === key ? 'bg-primary-600 text-white shadow' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+              filter === key
+                ? key === 'overdue'
+                  ? 'bg-rose-600 text-white shadow'
+                  : 'bg-primary-600 text-white shadow'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             {label}
@@ -213,43 +313,130 @@ export default function GBKCasesPage() {
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 border-y border-slate-200">
                 <tr>
-                  {['Murid', 'Kelas', 'Tarikh', 'Jenis', 'Objektif', 'Status', 'Ringkasan'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
+                  {['Murid', 'Kelas', 'Tarikh', 'Jenis', 'Objektif', 'Status', 'Susulan', 'Ringkasan', ''].map((h) => (
+                    <th key={h || 'act'} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filtered.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50/80 align-top">
-                    <td className="px-4 py-3 font-semibold text-slate-900">{r.student_name}</td>
-                    <td className="px-4 py-3 text-slate-600">{r.class_name || '—'}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-slate-600">{r.session_date}</td>
-                    <td className="px-4 py-3 text-slate-600 capitalize">{r.intervention_type || '—'}</td>
-                    <td className="px-4 py-3 max-w-[200px] text-slate-600 line-clamp-2">{r.objective || '—'}</td>
-                    <td className="px-4 py-3">
-                      <select
-                        value={r.case_status}
-                        disabled={savingId === r.id}
-                        onChange={(e) => updateStatus(r.id, e.target.value as CaseStatus)}
-                        className={`rounded-lg border px-2 py-1.5 text-xs font-bold ${caseStatusBadgeClass(r.case_status)}`}
-                      >
-                        {CASE_STATUS_ORDER.map((s) => (
-                          <option key={s} value={s}>
-                            {CASE_STATUS_LABELS[s]}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-4 py-3 max-w-[240px] text-xs text-slate-500 line-clamp-3">{r.summary || '—'}</td>
-                  </tr>
-                ))}
+                {filtered.map((r) => {
+                  const overdue = isCaseOverdue(r.case_status, r.tarikh_susulan)
+                  return (
+                    <tr key={r.id} className={`hover:bg-slate-50/80 align-top ${overdue ? 'bg-rose-50/40' : ''}`}>
+                      <td className="px-4 py-3 font-semibold text-slate-900">
+                        {r.student_name}
+                        {overdue && (
+                          <span className="ml-2 inline-flex items-center gap-0.5 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
+                            <AlertTriangle size={10} /> Overdue
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">{r.class_name || '—'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-slate-600">{r.session_date}</td>
+                      <td className="px-4 py-3 text-slate-600 capitalize">{r.intervention_type || '—'}</td>
+                      <td className="px-4 py-3 max-w-[180px] text-slate-600 line-clamp-2">{r.objective || '—'}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-1.5">
+                          <span
+                            className={`inline-flex w-fit rounded-lg border px-2 py-1 text-xs font-bold ${caseStatusBadgeClass(r.case_status)}`}
+                          >
+                            {CASE_STATUS_LABELS[r.case_status]}
+                          </span>
+                          <select
+                            value={r.case_status}
+                            disabled={savingId === r.id}
+                            onChange={(e) => openStatusModal(r, e.target.value as CaseStatus)}
+                            className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600"
+                          >
+                            {CASE_STATUS_ORDER.map((s) => (
+                              <option key={s} value={s}>
+                                Tukar → {CASE_STATUS_LABELS[s]}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-600">
+                        {r.tarikh_susulan || '—'}
+                      </td>
+                      <td className="px-4 py-3 max-w-[200px] text-xs text-slate-500 line-clamp-3">{r.summary || '—'}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => openHistory(r)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          <History size={14} />
+                          History
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         )}
       </section>
+
+      {statusModalRow && (
+        <StatusChangeModal
+          open={!!statusModalRow}
+          onClose={() => setStatusModalRow(null)}
+          studentName={statusModalRow.student_name}
+          fromStatus={statusModalRow.case_status}
+          initialToStatus={statusModalTo}
+          saving={savingId === statusModalRow.id}
+          onConfirm={confirmStatusChange}
+        />
+      )}
+
+      <ModalOverlay
+        open={!!historyRow}
+        onClose={() => setHistoryRow(null)}
+        title="History status"
+        subtitle={historyRow ? `${historyRow.student_name} · ${historyRow.session_date}` : ''}
+        size="lg"
+      >
+        {historyLoading ? (
+          <p className="py-8 text-center text-sm text-slate-500">Memuatkan…</p>
+        ) : historyLogs.length === 0 ? (
+          <p className="py-8 text-center text-sm text-slate-500">
+            Belum ada perubahan status direkod. Tukar status untuk mula timeline.
+          </p>
+        ) : (
+          <ul className="max-h-[60vh] space-y-3 overflow-y-auto">
+            {historyLogs.map((log) => (
+              <li key={log.id} className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-sm">
+                <p className="font-semibold text-slate-800">
+                  {formatStatusLogLine({
+                    fromStatus: log.from_status,
+                    toStatus: log.to_status,
+                    createdAt: log.created_at,
+                    counselorName: log.counselor_name,
+                    nota: log.nota,
+                  })}
+                </p>
+                {log.tarikh_susulan && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Tarikh susulan: <strong>{log.tarikh_susulan}</strong>
+                  </p>
+                )}
+                {log.agensi_rujukan && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Rujukan: <strong>{log.agensi_rujukan}</strong>
+                  </p>
+                )}
+                {log.nota && (
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600 whitespace-pre-wrap">{log.nota}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </ModalOverlay>
     </PortalShell>
   )
 }
