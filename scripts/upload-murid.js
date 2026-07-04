@@ -11,6 +11,7 @@ const readline = require('readline')
 const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
+const { buildClassName } = require('../lib/class-name.js')
 
 // Load env from .env.local manually (dotenv require may not work in this context)
 try {
@@ -93,6 +94,9 @@ function parseExcel(filePath) {
     const nama = (row['NAMA'] || row['Nama'] || '').trim()
     const icFull = (row['NO. PENGENALAN'] || row['No. Pengenalan'] || '').toString().trim()
     const kelas = (row['NAMA KELAS'] || row['Nama Kelas'] || '').trim()
+    const tingkatan = (
+      row['TAHUN / TINGKATAN'] || row['Tahun / Tingkatan'] || row['TINGKATAN'] || ''
+    ).toString().trim()
     const jantina = (row['JANTINA'] || row['Jantina'] || '').trim().toUpperCase()
 
     if (!nama || !icFull) continue
@@ -107,7 +111,7 @@ function parseExcel(filePath) {
       full_name: nama,
       ic_full: icFull,
       ic_6_digit: ic6,
-      class_name: kelas || 'Tiada Kelas',
+      class_name: buildClassName(tingkatan, kelas),
       jantina: jantina === 'LELAKI' ? 'L' : jantina === 'PEREMPUAN' ? 'P' : 'L',
       email: `${ic6}@student.skmkj.edu.my`,
     })

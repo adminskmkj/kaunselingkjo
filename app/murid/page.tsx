@@ -4,17 +4,38 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
-import { PortalShell, StatCard } from '@/components/portal-shell'
+import { PortalShell } from '@/components/portal-shell'
+import { Flame, Star, BarChart2, BookOpen, CalendarCheck, Trophy, ArrowRight, TrendingUp } from 'lucide-react'
 
-type PointsTracker = {
-  total_points: number
-  current_streak: number
-  longest_streak: number
-}
+type PointsTracker = { total_points: number; current_streak: number; longest_streak: number }
+type TodayCheckin = { id: string; total_score: number }
+type CheckinHistory = { checkin_date: string; total_score: number | null }
+type Badge = { id: string; badge_name: string; icon: string | null }
 
-type TodayCheckin = {
-  id: string
-  total_score: number
+const quickLinks = [
+  { icon: <TrendingUp size={22} />, label: 'Sejarah Refleksi', path: '/murid/sejarah', color: 'from-blue-500 to-indigo-600' },
+  { icon: <Trophy size={22} />, label: 'Lencana Saya', path: '/murid/lencana', color: 'from-amber-400 to-orange-500' },
+  { icon: <CalendarCheck size={22} />, label: 'Sesi Kaunseling', path: '/murid/sesi', color: 'from-emerald-500 to-teal-600' },
+  { icon: <BookOpen size={22} />, label: 'Profil Saya', path: '/murid/profil', color: 'from-purple-500 to-pink-600' },
+]
+
+function ScoreRing({ pct }: { pct: number }) {
+  const r = 40; const c = 2 * Math.PI * r
+  const dash = (pct / 100) * c
+  const label = pct >= 80 ? 'Cemerlang' : pct >= 60 ? 'Baik' : pct >= 40 ? 'Sederhana' : 'Perlu Bimbingan'
+  const color = pct >= 80 ? '#10b981' : pct >= 60 ? '#3b82f6' : pct >= 40 ? '#f59e0b' : '#ef4444'
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r={r} fill="none" stroke="#e2e8f0" strokeWidth="10" />
+        <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="10"
+          strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
+          transform="rotate(-90 50 50)" style={{ transition: 'stroke-dasharray 0.8s ease' }} />
+        <text x="50" y="54" textAnchor="middle" fontSize="18" fontWeight="800" fill={color}>{pct}%</text>
+      </svg>
+      <span className="text-xs font-bold" style={{ color }}>{label}</span>
+    </div>
+  )
 }
 
 export default function MuridDashboard() {
@@ -22,157 +43,166 @@ export default function MuridDashboard() {
   const { profile, loading: authLoading } = useAuth()
   const [points, setPoints] = useState<PointsTracker | null>(null)
   const [todayCheckin, setTodayCheckin] = useState<TodayCheckin | null>(null)
+  const [history, setHistory] = useState<CheckinHistory[]>([])
+  const [badges, setBadges] = useState<Badge[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!authLoading) {
-      if (!profile) {
-        router.push('/login')
-      } else if (profile.role !== 'student') {
-        router.push('/dashboard')
-      } else {
-        fetchData()
-      }
+      if (!profile) router.push('/login')
+      else if (profile.role !== 'student') router.push('/dashboard')
+      else fetchData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, authLoading, router])
+  }, [profile, authLoading])
 
-  const fetchData = async () => {
+  async function fetchData() {
     if (!profile) return
-
     try {
-      // Fetch points tracker. Brand-new students may not have this row yet.
-      const { data: pointsData, error: pointsError } = await supabase
-        .from('points_tracker')
-        .select('*')
-        .eq('student_id', profile.id)
-        .maybeSingle()
-
-      if (pointsError) console.error('Error fetching points_tracker:', pointsError)
-      setPoints(pointsData || { total_points: 0, current_streak: 0, longest_streak: 0 })
-
-      // Check today's checkin. 0 rows is normal before the student submits.
       const today = new Date().toISOString().split('T')[0]
-      const { data: checkinData, error: checkinError } = await supabase
-        .from('checkins')
-        .select('id, total_score')
-        .eq('student_id', profile.id)
-        .eq('checkin_date', today)
-        .maybeSingle()
-
-      if (checkinError) console.error('Error fetching today checkin:', checkinError)
-      setTodayCheckin(checkinData)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    } finally {
-      setLoading(false)
-    }
+      const [ptRes, ciRes, histRes, badgeRes] = await Promise.all([
+        supabase.from('points_tracker').select('total_points,current_streak,longest_streak').eq('student_id', profile.id).maybeSingle(),
+        supabase.from('checkins').select('id,total_score').eq('student_id', profile.id).eq('checkin_date', today).maybeSingle(),
+        supabase.from('checkins').select('checkin_date,total_score').eq('student_id', profile.id).order('checkin_date', { ascending: false }).limit(7),
+        supabase.from('student_badges').select('id,badge_name,icon').eq('student_id', profile.id).limit(6),
+      ])
+      setPoints(ptRes.data || { total_points: 0, current_streak: 0, longest_streak: 0 })
+      setTodayCheckin(ciRes.data as TodayCheckin | null)
+      setHistory((histRes.data || []) as CheckinHistory[])
+      setBadges((badgeRes.data || []) as Badge[])
+    } finally { setLoading(false) }
   }
 
-  if (authLoading || loading) {
-    return (
-      <PortalShell title="Dashboard Murid">
-        <div className="flex items-center justify-center py-16">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
-            <p className="text-neutral-600">Memuatkan...</p>
-          </div>
-        </div>
-      </PortalShell>
-    )
-  }
+  if (authLoading || loading) return (
+    <PortalShell title="Dashboard Murid">
+      <div className="flex items-center justify-center py-24">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+      </div>
+    </PortalShell>
+  )
+
+  const todayPct = todayCheckin?.total_score ?? 0
+  const avgScore = history.length
+    ? Math.round(history.reduce((a, c) => a + (c.total_score ?? 0), 0) / history.length)
+    : 0
 
   return (
     <PortalShell title="Dashboard Murid" subtitle="Pantau perkembangan dan refleksi harian anda">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatCard 
-          label="Streak Harian" 
-          value={points?.current_streak || 0}
-          icon="🔥"
-          tone="orange"
-          subtitle={`Rekod terbaik: ${points?.longest_streak || 0} hari`}
-        />
-        
-        <StatCard 
-          label="Total Mata" 
-          value={points?.total_points || 0}
-          icon="⭐"
-          tone="green"
-        />
-        
-        <StatCard 
-          label="Skor Hari Ini" 
-          value={todayCheckin ? `${todayCheckin.total_score?.toFixed(0)}%` : '--'}
-          icon="📊"
-          tone={todayCheckin ? 'blue' : 'red'}
-          subtitle={todayCheckin ? '✓ Sudah isi' : 'Belum isi'}
-        />
+      {/* KPI */}
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[
+          { icon: <Flame size={20} />, label: 'Streak Harian', value: `${points?.current_streak ?? 0} hari`, sub: `Rekod: ${points?.longest_streak ?? 0} hari`, bg: 'from-orange-400 to-rose-500' },
+          { icon: <Star size={20} />, label: 'Jumlah Mata', value: points?.total_points ?? 0, sub: 'Dikumpul setakat ini', bg: 'from-amber-400 to-yellow-500' },
+          { icon: <BarChart2 size={20} />, label: 'Skor Purata', value: `${avgScore}%`, sub: '7 hari terkini', bg: 'from-blue-500 to-indigo-600' },
+          { icon: <Trophy size={20} />, label: 'Lencana', value: badges.length, sub: 'Pencapaian diperoleh', bg: 'from-emerald-500 to-teal-600' },
+        ].map((k) => (
+          <div key={k.label} className="overflow-hidden rounded-2xl bg-white p-5 shadow-lg shadow-slate-200/60 transition hover:shadow-xl hover:-translate-y-0.5">
+            <div className={`mb-3 inline-flex items-center justify-center rounded-xl bg-gradient-to-br ${k.bg} p-2.5 text-white shadow`}>
+              {k.icon}
+            </div>
+            <p className="text-2xl font-black text-slate-900">{k.value}</p>
+            <p className="text-sm font-semibold text-slate-600">{k.label}</p>
+            <p className="mt-0.5 text-xs text-slate-400">{k.sub}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Action Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="card">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-100 text-4xl mb-4">
-              📝
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          {/* Skor + Trend */}
+          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-black text-slate-900">Trend Skor Disiplin (7 Hari)</h2>
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{avgScore}% purata</span>
             </div>
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Refleksi Harian</h2>
-            <p className="text-neutral-600">
-              {todayCheckin 
-                ? 'Anda sudah mengisi refleksi hari ini. Terima kasih!'
-                : 'Luangkan 2 minit untuk refleksi hari ini'}
-            </p>
+            {history.length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-400">Belum ada rekod refleksi.</p>
+            ) : (
+              <div className="flex items-end gap-2 h-28">
+                {[...history].reverse().map((h, i) => {
+                  const pct = h.total_score ?? 0
+                  const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
+                  return (
+                    <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                      <span className="text-xs font-bold text-slate-600">{pct}%</span>
+                      <div className={`w-full rounded-t-lg ${color} transition-all`} style={{ height: `${(pct / 100) * 80}px` }} />
+                      <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
-          
-          <button
-            onClick={() => router.push('/murid/refleksi')}
-            disabled={!!todayCheckin}
-            className={todayCheckin ? 'btn-secondary w-full opacity-50 cursor-not-allowed' : 'btn-primary w-full'}
-          >
-            {todayCheckin ? '✓ Sudah Selesai Hari Ini' : 'Mula Refleksi'}
-          </button>
+
+          {/* Lencana */}
+          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-black text-slate-900">Lencana & Pencapaian</h2>
+              <button onClick={() => router.push('/murid/lencana')} className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800">
+                Lihat semua <ArrowRight size={14} />
+              </button>
+            </div>
+            {badges.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-400">Belum ada lencana. Terus buat refleksi untuk unlock! 🚀</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+                {badges.map((b) => (
+                  <div key={b.id} className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50 p-3 text-center">
+                    <span className="text-2xl">{b.icon ?? '🏅'}</span>
+                    <span className="text-[10px] font-bold leading-tight text-slate-700">{b.badge_name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="card">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent-100 text-4xl mb-4">
-              📅
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Skor hari ini */}
+          <div className="overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white shadow-xl">
+            <p className="mb-4 text-sm font-bold opacity-80">Skor Hari Ini</p>
+            <div className="flex justify-center">
+              {todayCheckin ? <ScoreRing pct={todayPct} /> : (
+                <div className="py-4 text-center">
+                  <p className="text-4xl">📝</p>
+                  <p className="mt-3 text-sm font-bold opacity-80">Belum isi refleksi</p>
+                </div>
+              )}
             </div>
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Tempah Sesi</h2>
-            <p className="text-neutral-600">
-              Perlukan bimbingan atau kaunseling? Tempah sesi dengan GBK
-            </p>
-          </div>
-          
-          <button
-            onClick={() => router.push('/murid/tempah-sesi')}
-            className="btn-primary w-full bg-accent-600 hover:bg-accent-700 focus:ring-accent-200"
-          >
-            Tempah Sekarang
-          </button>
-        </div>
-      </div>
-
-      {/* Quick Links */}
-      <div>
-        <h3 className="text-lg font-semibold text-neutral-900 mb-4">Akses Pantas</h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { icon: '📈', label: 'Sejarah Refleksi', path: '/murid/sejarah' },
-            { icon: '🏆', label: 'Lencana Saya', path: '/murid/lencana' },
-            { icon: '📆', label: 'Sesi Kaunseling', path: '/murid/sesi' },
-            { icon: '👤', label: 'Profil', path: '/murid/profil' },
-          ].map((link) => (
             <button
-              key={link.path}
-              onClick={() => router.push(link.path)}
-              className="card text-center hover:shadow-strong hover:border-primary-200 transition-all duration-200 group"
+              onClick={() => router.push('/murid/refleksi')}
+              disabled={!!todayCheckin}
+              className="mt-5 w-full rounded-2xl bg-white py-3 text-sm font-black text-blue-700 shadow transition hover:bg-blue-50 disabled:opacity-50"
             >
-              <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{link.icon}</div>
-              <p className="text-sm font-semibold text-neutral-700 group-hover:text-primary-600 transition-colors">{link.label}</p>
+              {todayCheckin ? '✓ Sudah Selesai Hari Ini' : 'Mula Refleksi Sekarang'}
             </button>
-          ))}
+            <button
+              onClick={() => router.push('/murid/tempah-sesi')}
+              className="mt-3 w-full rounded-2xl border border-white/30 py-2.5 text-sm font-bold text-white transition hover:bg-white/10"
+            >
+              Tempah Sesi Kaunseling
+            </button>
+          </div>
+
+          {/* Quick links */}
+          <div className="overflow-hidden rounded-[1.5rem] bg-white p-5 shadow-xl shadow-slate-200/60">
+            <h2 className="mb-4 text-base font-black text-slate-900">Akses Pantas</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {quickLinks.map((l) => (
+                <button
+                  key={l.path}
+                  onClick={() => router.push(l.path)}
+                  className="group flex flex-col items-center gap-2 rounded-2xl bg-slate-50 p-4 text-center transition hover:shadow-md hover:-translate-y-0.5"
+                >
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${l.color} text-white shadow group-hover:scale-110 transition-transform`}>
+                    {l.icon}
+                  </div>
+                  <span className="text-xs font-bold text-slate-700">{l.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </PortalShell>

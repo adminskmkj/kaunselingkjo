@@ -2,38 +2,38 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PortalShell, StatCard } from '@/components/portal-shell'
+import { PortalShell } from '@/components/portal-shell'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
+import { BarChart2, Flame, Trophy, TrendingUp, BookOpen, Heart } from 'lucide-react'
 
-type ChildRow = {
-  id: string
-  full_name: string
-  class_name: string | null
+type ChildRow = { id: string; full_name: string; class_name: string | null }
+type CheckinRow = { id: string; checkin_date: string; total_score: number | null; q7_perasaan_emosi: string | null; q9_tahap_stres: number | null }
+type PointsRow = { total_points: number; current_streak: number }
+type BadgeRow = { id: string; badge_name: string; icon: string | null }
+
+function ScoreRing({ pct }: { pct: number }) {
+  const r = 38; const c = 2 * Math.PI * r
+  const dash = (pct / 100) * c
+  const color = pct >= 80 ? '#10b981' : pct >= 60 ? '#3b82f6' : pct >= 40 ? '#f59e0b' : '#ef4444'
+  const label = pct >= 80 ? 'Cemerlang' : pct >= 60 ? 'Baik' : pct >= 40 ? 'Sederhana' : 'Perlu Bimbingan'
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <svg width="92" height="92" viewBox="0 0 92 92">
+        <circle cx="46" cy="46" r={r} fill="none" stroke="#e2e8f0" strokeWidth="10" />
+        <circle cx="46" cy="46" r={r} fill="none" stroke={color} strokeWidth="10"
+          strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
+          transform="rotate(-90 46 46)" />
+        <text x="46" y="50" textAnchor="middle" fontSize="16" fontWeight="800" fill={color}>{pct}%</text>
+      </svg>
+      <span className="text-xs font-bold" style={{ color }}>{label}</span>
+    </div>
+  )
 }
 
-type CheckinRow = {
-  id: string
-  checkin_date: string
-  total_score: number | null
-  q7_perasaan_emosi: string | null
-  q9_tahap_stres: number | null
-}
-
-type PointsRow = {
-  total_points: number
-  current_streak: number
-}
-
-type ParentClient = {
-  from: (table: string) => {
-    select: (columns: string) => {
-      eq: (column: string, value: string) => {
-        order: (column: string, options: { ascending: boolean }) => Promise<{ data: ChildRow[] | CheckinRow[] | null; error: Error | null }>
-        maybeSingle: () => Promise<{ data: PointsRow | null; error: Error | null }>
-      }
-    }
-  }
+const emojiMap: Record<string, string> = {
+  'Gembira': '😄', 'Sedih': '😢', 'Marah': '😠', 'Cemas': '😰',
+  'Tenang': '😌', 'Bosan': '😑', 'Teruja': '🤩', 'Penat': '😫',
 }
 
 export default function IbuBapaPage() {
@@ -43,127 +43,225 @@ export default function IbuBapaPage() {
   const [selectedChildId, setSelectedChildId] = useState('')
   const [checkins, setCheckins] = useState<CheckinRow[]>([])
   const [points, setPoints] = useState<PointsRow | null>(null)
-  const [badgeCount, setBadgeCount] = useState(0)
+  const [badges, setBadges] = useState<BadgeRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (authLoading) return
-    if (!profile) {
-      router.push('/login')
-      return
-    }
-    if (profile.role !== 'parent' && profile.role !== 'admin') {
-      router.push('/dashboard')
-      return
-    }
-
-    async function fetchChildren() {
-      const { data, error } = await (supabase as unknown as ParentClient)
-        .from('profiles')
-        .select('id, full_name, class_name')
-        .eq('parent_id', profile!.id)
-        .order('full_name', { ascending: true })
-
-      if (error) console.error('Error fetching children:', error)
-      const rows = (data || []) as ChildRow[]
-      setChildren(rows)
-      if (rows.length > 0) setSelectedChildId(rows[0].id)
-      setLoading(false)
-    }
-
+    if (!profile) { router.push('/login'); return }
+    if (profile.role !== 'parent' && profile.role !== 'admin') { router.push('/dashboard'); return }
     fetchChildren()
-  }, [authLoading, profile, router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, profile])
+
+  async function fetchChildren() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
+      .from('profiles').select('id, full_name, class_name')
+      .eq('parent_id', profile!.id).order('full_name')
+    const rows = (data || []) as ChildRow[]
+    setChildren(rows)
+    if (rows.length > 0) setSelectedChildId(rows[0].id)
+    setLoading(false)
+  }
 
   useEffect(() => {
-    if (!selectedChildId) {
-      setCheckins([])
-      setPoints(null)
-      setBadgeCount(0)
-      return
-    }
-
-    async function fetchChildData() {
-      const client = supabase as unknown as ParentClient
-      const { data: checkinData, error: checkinError } = await client
-        .from('checkins')
-        .select('id, checkin_date, total_score, q7_perasaan_emosi, q9_tahap_stres')
-        .eq('student_id', selectedChildId)
-        .order('checkin_date', { ascending: false })
-
-      const { data: pointsData, error: pointsError } = await client
-        .from('points_tracker')
-        .select('total_points, current_streak')
-        .eq('student_id', selectedChildId)
-        .maybeSingle()
-
-      const { data: badgeRows, error: badgeError } = await client
-        .from('student_badges')
-        .select('id')
-        .eq('student_id', selectedChildId)
-        .order('id', { ascending: true })
-
-      if (checkinError) console.error('Error fetching child checkins:', checkinError)
-      if (pointsError) console.error('Error fetching child points:', pointsError)
-      if (badgeError) console.error('Error fetching child badges:', badgeError)
-
-      setCheckins((checkinData || []) as CheckinRow[])
-      setPoints(pointsData)
-      setBadgeCount((badgeRows || []).length)
-    }
-
-    fetchChildData()
+    if (!selectedChildId) { setCheckins([]); setPoints(null); setBadges([]); return }
+    fetchChildData(selectedChildId)
   }, [selectedChildId])
 
-  const selectedChild = children.find((child) => child.id === selectedChildId)
-  const latestScore = checkins[0]?.total_score
+  async function fetchChildData(id: string) {
+    const [ciRes, ptRes, bdRes] = await Promise.all([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from('checkins').select('id,checkin_date,total_score,q7_perasaan_emosi,q9_tahap_stres').eq('student_id', id).order('checkin_date', { ascending: false }).limit(10),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from('points_tracker').select('total_points,current_streak').eq('student_id', id).maybeSingle(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from('student_badges').select('id,badge_name,icon').eq('student_id', id).limit(6),
+    ])
+    setCheckins((ciRes.data || []) as CheckinRow[])
+    setPoints(ptRes.data as PointsRow | null)
+    setBadges((bdRes.data || []) as BadgeRow[])
+  }
+
+  const selectedChild = children.find((c) => c.id === selectedChildId)
+  const latestScore = checkins[0]?.total_score ?? 0
+  const recentCheckins = [...checkins].slice(0, 7).reverse()
+
+  if (authLoading || loading) return (
+    <PortalShell title="Portal Ibu Bapa">
+      <div className="flex items-center justify-center py-24">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+      </div>
+    </PortalShell>
+  )
+
+  if (children.length === 0) return (
+    <PortalShell title="Portal Ibu Bapa">
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <p className="text-5xl">👪</p>
+        <h2 className="mt-4 text-xl font-black text-slate-900">Belum ada anak dipautkan</h2>
+        <p className="mt-2 text-sm text-slate-500">Hubungi pentadbir untuk pautkan akaun ibu bapa kepada profil murid.</p>
+      </div>
+    </PortalShell>
+  )
 
   return (
-    <PortalShell title="Portal Ibu Bapa" subtitle="Paparan ringkas perkembangan anak. Nota dalaman guru/GBK tidak dipaparkan.">
-      {loading ? (
-        <div className="rounded-lg bg-white p-8 text-center shadow">Memuatkan...</div>
-      ) : children.length === 0 ? (
-        <div className="rounded-lg bg-white p-8 text-center shadow">
-          <div className="mb-3 text-5xl">👪</div>
-          <h2 className="text-lg font-bold text-gray-900">Belum ada anak dipautkan</h2>
-          <p className="mt-2 text-sm text-gray-600">Hubungi pentadbir untuk pautkan akaun ibu bapa kepada profil murid.</p>
+    <PortalShell title="Portal Ibu Bapa" subtitle="Paparan ringkas perkembangan anak. Nota dalaman tidak dipaparkan.">
+
+      {/* Pilih anak */}
+      {children.length > 1 && (
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          {children.map((ch) => (
+            <button
+              key={ch.id}
+              onClick={() => setSelectedChildId(ch.id)}
+              className={`rounded-2xl border px-4 py-2 text-sm font-bold transition ${selectedChildId === ch.id
+                ? 'border-blue-500 bg-blue-600 text-white shadow-lg shadow-blue-200'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300'}`}
+            >
+              {ch.full_name} {ch.class_name ? `· ${ch.class_name}` : ''}
+            </button>
+          ))}
         </div>
-      ) : (
-        <>
-          <div className="mb-6 rounded-lg bg-white p-4 shadow">
-            <label className="block text-sm font-medium text-gray-700">Pilih anak</label>
-            <select value={selectedChildId} onChange={(e) => setSelectedChildId(e.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 md:max-w-md">
-              {children.map((child) => (
-                <option key={child.id} value={child.id}>{child.full_name} {child.class_name ? `(${child.class_name})` : ''}</option>
-              ))}
-            </select>
-          </div>
+      )}
 
-          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <StatCard label="Skor Terkini" value={latestScore == null ? '--' : `${latestScore.toFixed(0)}%`} icon="📊" tone="blue" />
-            <StatCard label="Streak" value={`${points?.current_streak || 0} hari`} icon="🔥" tone="orange" />
-            <StatCard label="Lencana" value={badgeCount} icon="🏆" tone="purple" />
+      {/* Profil anak */}
+      {selectedChild && (
+        <div className="mb-6 overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-6 text-white shadow-xl">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-3xl font-black text-white shadow">
+                {selectedChild.full_name.charAt(0)}
+              </div>
+              <div>
+                <p className="text-xl font-black">{selectedChild.full_name}</p>
+                <p className="text-sm opacity-80">{selectedChild.class_name || 'Kelas belum ditetapkan'}</p>
+                <p className="mt-1 text-xs opacity-60">Perkembangan semasa</p>
+              </div>
+            </div>
+            <ScoreRing pct={Math.round(latestScore)} />
           </div>
+        </div>
+      )}
 
-          <section className="rounded-lg bg-white p-6 shadow">
-            <h2 className="mb-4 text-xl font-bold text-gray-900">Perkembangan {selectedChild?.full_name}</h2>
-            {checkins.length === 0 ? (
-              <p className="text-sm text-gray-600">Belum ada refleksi direkodkan.</p>
+      {/* KPI */}
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[
+          { icon: <BarChart2 size={20} />, label: 'Skor Terkini', value: latestScore ? `${Math.round(latestScore)}%` : '--', sub: 'Refleksi terakhir', bg: 'from-blue-500 to-indigo-600' },
+          { icon: <Flame size={20} />, label: 'Streak', value: `${points?.current_streak ?? 0} hari`, sub: 'Streak semasa', bg: 'from-orange-400 to-rose-500' },
+          { icon: <TrendingUp size={20} />, label: 'Jumlah Mata', value: points?.total_points ?? 0, sub: 'Dikumpul setakat ini', bg: 'from-emerald-500 to-teal-600' },
+          { icon: <Trophy size={20} />, label: 'Lencana', value: badges.length, sub: 'Pencapaian diperoleh', bg: 'from-amber-400 to-orange-500' },
+        ].map((k) => (
+          <div key={k.label} className="overflow-hidden rounded-2xl bg-white p-5 shadow-lg shadow-slate-200/60 transition hover:shadow-xl hover:-translate-y-0.5">
+            <div className={`mb-3 inline-flex items-center justify-center rounded-xl bg-gradient-to-br ${k.bg} p-2.5 text-white shadow`}>
+              {k.icon}
+            </div>
+            <p className="text-2xl font-black text-slate-900">{k.value}</p>
+            <p className="text-sm font-semibold text-slate-600">{k.label}</p>
+            <p className="mt-0.5 text-xs text-slate-400">{k.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+
+          {/* Trend skor */}
+          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60">
+            <h2 className="mb-4 text-lg font-black text-slate-900">Trend Skor Disiplin (7 Hari Terkini)</h2>
+            {recentCheckins.length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-400">Belum ada rekod refleksi diisi.</p>
             ) : (
-              <div className="space-y-3">
-                {checkins.slice(0, 10).map((c) => (
-                  <div key={c.id} className="flex items-center justify-between rounded-lg border border-gray-100 p-4">
-                    <div>
-                      <p className="font-semibold text-gray-900">{c.checkin_date}</p>
-                      <p className="text-sm text-gray-600">Emosi: {c.q7_perasaan_emosi || '-'} • Stres: {c.q9_tahap_stres ?? '-'}</p>
+              <div className="flex items-end gap-2 h-28">
+                {recentCheckins.map((h, i) => {
+                  const pct = h.total_score ?? 0
+                  const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
+                  return (
+                    <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                      <span className="text-xs font-bold text-slate-600">{Math.round(pct)}%</span>
+                      <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 80}px`, minHeight: 4 }} />
+                      <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
                     </div>
-                    <span className="font-bold text-blue-600">{c.total_score == null ? '-' : `${c.total_score.toFixed(0)}%`}</span>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Sejarah refleksi */}
+          <div className="overflow-hidden rounded-[1.5rem] bg-white shadow-xl shadow-slate-200/60">
+            <div className="border-b border-slate-100 px-6 py-4">
+              <h2 className="text-lg font-black text-slate-900">Sejarah Refleksi {selectedChild?.full_name}</h2>
+            </div>
+            {checkins.length === 0 ? (
+              <p className="p-8 text-center text-sm text-slate-400">Belum ada refleksi direkodkan.</p>
+            ) : (
+              <div className="divide-y divide-slate-50">
+                {checkins.slice(0, 8).map((c) => {
+                  const pct = Math.round(c.total_score ?? 0)
+                  const color = pct >= 80 ? 'text-emerald-600 bg-emerald-50' : pct >= 60 ? 'text-blue-600 bg-blue-50' : pct >= 40 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50'
+                  return (
+                    <div key={c.id} className="flex items-center gap-4 px-6 py-3 hover:bg-slate-50/60 transition">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-xl">
+                        {emojiMap[c.q7_perasaan_emosi ?? ''] ?? '😐'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900">{c.checkin_date}</p>
+                        <p className="text-xs text-slate-500">
+                          Emosi: {c.q7_perasaan_emosi || '—'} · Stres: {c.q9_tahap_stres ?? '—'}/10
+                        </p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-black ${color}`}>{pct}%</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Lencana */}
+          <div className="overflow-hidden rounded-[1.5rem] bg-white p-5 shadow-xl shadow-slate-200/60">
+            <div className="mb-4 flex items-center gap-2">
+              <Trophy size={18} className="text-amber-500" />
+              <h2 className="text-base font-black text-slate-900">Pencapaian & Lencana</h2>
+            </div>
+            {badges.length === 0 ? (
+              <p className="py-4 text-center text-sm text-slate-400">Belum ada lencana diperoleh.</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {badges.map((b) => (
+                  <div key={b.id} className="flex flex-col items-center gap-1.5 rounded-xl bg-amber-50 p-2.5 text-center">
+                    <span className="text-xl">{b.icon ?? '🏅'}</span>
+                    <span className="text-[10px] font-bold leading-tight text-slate-700">{b.badge_name}</span>
                   </div>
                 ))}
               </div>
             )}
-          </section>
-        </>
-      )}
+          </div>
+
+          {/* Nota ibu bapa */}
+          <div className="overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-indigo-50 to-blue-50 p-5 shadow-lg shadow-slate-200/40">
+            <div className="mb-3 flex items-center gap-2">
+              <Heart size={16} className="text-rose-500" />
+              <h2 className="text-sm font-black text-slate-800">Nota untuk Ibu Bapa</h2>
+            </div>
+            <p className="text-xs leading-relaxed text-slate-600">
+              Portal ini menunjukkan perkembangan umum anak anda. Rekod sulit dan nota dalaman guru/GBK tidak dipaparkan demi menjaga privasi murid.
+            </p>
+            <button
+              onClick={() => router.push('/murid/sesi')}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-2.5 text-xs font-black text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"
+            >
+              <BookOpen size={14} />
+              Lihat Sesi Kaunseling
+            </button>
+          </div>
+        </div>
+      </div>
     </PortalShell>
   )
 }

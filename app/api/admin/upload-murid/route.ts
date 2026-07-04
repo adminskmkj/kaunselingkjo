@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import * as XLSX from 'xlsx'
 import { randomBytes } from 'crypto'
+import { buildClassName } from '@/lib/class-name'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -51,6 +52,9 @@ function parseExcel(buffer: Buffer): StudentData[] {
     const nama = String(row['NAMA'] || row['Nama'] || '').trim()
     const icFull = String(row['NO. PENGENALAN'] || row['No. Pengenalan'] || '').trim()
     const kelas = String(row['NAMA KELAS'] || row['Nama Kelas'] || '').trim()
+    const tingkatan = String(
+      row['TAHUN / TINGKATAN'] || row['Tahun / Tingkatan'] || row['TINGKATAN'] || ''
+    ).trim()
 
     if (!nama || !icFull) continue
 
@@ -61,7 +65,7 @@ function parseExcel(buffer: Buffer): StudentData[] {
       full_name: nama,
       ic_full: icFull,
       ic_6_digit: ic6,
-      class_name: kelas || 'Tiada Kelas',
+      class_name: buildClassName(tingkatan, kelas),
       email: `${ic6}@student.skmkj.edu.my`,
     })
   }
