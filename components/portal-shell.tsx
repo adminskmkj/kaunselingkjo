@@ -197,7 +197,12 @@ export function PortalShell({
                 <X size={20} />
               </button>
             </div>
-            <SidebarNav visibleNav={visibleNav} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+            <SidebarNav
+              visibleNav={visibleNav}
+              pathname={pathname}
+              badgeByHref={badgeByHref}
+              onNavigate={() => setMobileOpen(false)}
+            />
           </aside>
         </div>
       )}

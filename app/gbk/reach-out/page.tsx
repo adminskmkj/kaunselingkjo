@@ -126,6 +126,7 @@ export default function GBKReachOutPage() {
       if (error) throw error
       await fetchRows()
       setReply('')
+      window.dispatchEvent(new Event('reach-out-badge-refresh'))
       alert('Balasan dihantar.')
     } catch (e) {
       console.error(e)

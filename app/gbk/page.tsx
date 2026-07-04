@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { PortalShell, StatCard } from '@/components/portal-shell'
+import { useReachOutBadges } from '@/lib/use-reach-out-badges'
 import { CheckCircle2, AlertCircle, AlertTriangle, XCircle } from 'lucide-react'
 
 type RiskLevel = 'hijau' | 'kuning' | 'jingga' | 'merah'
@@ -33,6 +34,7 @@ type InterventionForm = {
 export default function GBKDashboardPage() {
   const router = useRouter()
   const { profile, loading: authLoading } = useAuth()
+  const { counts: reachBadges } = useReachOutBadges(profile?.role, profile?.id)
   const [students, setStudents] = useState<StudentRisk[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -270,8 +272,13 @@ export default function GBKDashboardPage() {
           <Link href="/gbk/kes" className="btn-secondary text-sm py-2 px-4">
             📋 Pengurusan Kes
           </Link>
-          <Link href="/gbk/reach-out" className="btn-secondary text-sm py-2 px-4">
+          <Link href="/gbk/reach-out" className="btn-secondary relative text-sm py-2 px-4">
             📬 Reach Out
+            {reachBadges.gbkNew > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+                {reachBadges.gbkNew > 9 ? '9+' : reachBadges.gbkNew}
+              </span>
+            )}
           </Link>
         </div>
         {students.length === 0 ? (

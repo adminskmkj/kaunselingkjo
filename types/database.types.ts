@@ -160,6 +160,7 @@ export type Database = {
           replied_at: string | null
           created_at: string
           updated_at: string
+          student_seen_reply: boolean
         }
         Insert: Omit<Database['public']['Tables']['reach_out_messages']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['reach_out_messages']['Insert']>

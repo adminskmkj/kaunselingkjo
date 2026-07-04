@@ -64,3 +64,8 @@ SELECT level, COUNT(*) FROM risk_levels WHERE is_active = true GROUP BY level;
 
 1. SQL Editor → paste **`supabase/migrations/012_reach_out_inbox.sql`** → Run
 2. Semak: `SELECT COUNT(*) FROM reach_out_messages;`
+
+## Migration 013 (badge Reach Out)
+
+1. SQL Editor → **`supabase/migrations/013_reach_out_unread_badges.sql`** → Run
+2. GBK: badge merah = mesej status **Baru**; murid: badge = balasan GBK belum dibaca
