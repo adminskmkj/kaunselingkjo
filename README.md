@@ -1,6 +1,6 @@
 # S.T.A.R KJo - Student Tracker Attitude Report
 
-Sistem pemantauan tingkah laku dan intervensi awal murid SMK Kampung Jawa.
+Sistem pemantauan tingkah laku dan intervensi awal murid SK Mohd Khir Johari.
 
 ## 🎯 Objektif
 
@@ -162,58 +162,47 @@ Tambah di Supabase dashboard → Authentication → URL Configuration:
 
 ```
 http://localhost:3000/** (development)
-https://star-kjo.vercel.app/** (production)
+https://kaunselingkjo.vercel.app/** (production)
 ```
 
-## 🎮 Development Roadmap
+## ✅ Status Semasa
 
-### ✅ Fasa 1 (Setup) — DONE
-- [x] Next.js project structure
-- [x] Database schema (10 jadual)
-- [x] RLS policies (role-based access)
-- [x] Supabase integration
-- [x] TypeScript types
+Portal yang dah ada dalam repo sekarang:
+- **Murid**: refleksi harian, lihat skor sendiri, reach out
+- **GBK**: murid perlu perhatian, intervensi, pengurusan kes, history, print rekod
+- **Guru**: pantau kelas dan catatan berkaitan murid
+- **Ibu bapa**: daftar sendiri, login, paut anak ikut IC, demo ibu bapa
+- **Pentadbir**: kawal portal, pantau data sekolah
 
-### 🚧 Fasa 2 (Core Features) — IN PROGRESS
-- [ ] Auth pages (login/signup/reset password)
-- [ ] Murid portal (refleksi form + dashboard)
-- [ ] GBK dashboard (risk levels + intervention tracking)
-- [ ] Guru portal (catatan + behavior records)
-- [ ] Ibu bapa portal (read-only child progress)
+## 🗺️ Roadmap Ringkas
 
-### 📋 Fasa 3 (Advanced Features)
-- [ ] Weekly score aggregation (cron job)
-- [ ] Auto-calculate risk levels (trigger)
-- [ ] Badge awarding system
-- [ ] Notification system (email/push)
-- [ ] Export reports (PDF/Excel)
+### Selesai / hampir siap
+- [x] Login / daftar akaun ibu bapa
+- [x] Portal ibu bapa + demo
+- [x] Reach Out inbox & badges
+- [x] Pengurusan Kes GBK
+- [x] Status kes + history log + overdue
+- [x] Intervensi GBK disimpan dalam `intervention_records`
+- [x] Rekod intervensi boleh dicetak
 
-### 🤖 Fasa 4 (AI Integration)
-- [ ] AI recommendations (Gemini API)
-- [ ] Trend analysis & predictions
-- [ ] Auto-prioritize intervention list
-
-### 🔗 Fasa 5 (External Integration)
-- [ ] Link sistem kehadiran KJo (APDM webhook)
-- [ ] SMS notifications (ibu bapa)
-- [ ] WhatsApp bot (optional)
+### Seterusnya
+- [ ] Kemas kini dashboard murid/guru supaya lebih kemas
+- [ ] Laporan / export PDF yang lebih cantik
+- [ ] Notifikasi automatik bila kes overdue / follow-up
+- [ ] Audit & ringkasan ibu bapa yang lebih jelas
 
 ## 📝 Scripts
 
 ```bash
 # Development
-npm run dev          # Run dev server (Turbopack)
+npm run dev
 
 # Production
-npm run build        # Build for production
-npm run start        # Start production server
-
-# Database
-npm run db:migrate   # Run migrations (custom script)
-npm run db:seed      # Seed test data
+npm run build
+npm run start
 
 # Code quality
-npm run lint         # ESLint check
+npm run lint
 ```
 
 ## 📚 Documentation
@@ -223,26 +212,17 @@ npm run lint         # ESLint check
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [Recharts](https://recharts.org/)
 
-## 🤝 Contributing
-
-1. Fork repo
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
 ## 📄 License
 
-Proprietary — SMK Kampung Jawa Internal Use Only
+Proprietary — SK Mohd Khir Johari Internal Use Only
 
 ## 💬 Support
 
 Untuk soalan atau bantuan:
 - **Email**: admin@smkkj.edu.my
-- **GitHub Issues**: [Create issue](https://github.com/YOUR_ORG/star-kjo/issues)
 
 ---
 
-**Dibangunkan untuk**: SMK Kampung Jawa  
+**Dibangunkan untuk**: SK Mohd Khir Johari  
 **Tema**: STEM & TVET : PEMACU ASPIRASI KERJAYA DIGITAL GENERASI MADANI  
 **Tahun**: 2026
