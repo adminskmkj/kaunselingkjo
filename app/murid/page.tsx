@@ -15,6 +15,7 @@ type Badge = { id: string; badge_name: string; icon: string | null }
 const quickLinks = [
   { icon: <TrendingUp size={22} />, label: 'Sejarah Refleksi', path: '/murid/sejarah', color: 'from-blue-500 to-indigo-600' },
   { icon: <Trophy size={22} />, label: 'Lencana Saya', path: '/murid/lencana', color: 'from-amber-400 to-orange-500' },
+  { icon: <Heart size={22} />, label: 'Reach Out GBK', path: '/murid/reach-out', color: 'from-rose-500 to-pink-600' },
   { icon: <CalendarCheck size={22} />, label: 'Sesi Kaunseling', path: '/murid/sesi', color: 'from-emerald-500 to-teal-600' },
   { icon: <BookOpen size={22} />, label: 'Profil Saya', path: '/murid/profil', color: 'from-purple-500 to-pink-600' },
 ]

@@ -45,6 +45,8 @@ export default function IbuBapaPage() {
   const [points, setPoints] = useState<PointsRow | null>(null)
   const [badges, setBadges] = useState<BadgeRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [parentReachOut, setParentReachOut] = useState('')
+  const [sendingReachOut, setSendingReachOut] = useState(false)
 
   useEffect(() => {
     if (authLoading) return
@@ -286,6 +288,47 @@ export default function IbuBapaPage() {
             <p className="text-xs leading-relaxed text-slate-600">
               Portal ini menunjukkan perkembangan umum anak anda. Rekod sulit dan nota dalaman guru/GBK tidak dipaparkan demi menjaga privasi murid.
             </p>
+            <div className="mt-4 space-y-2">
+              <label className="text-xs font-bold text-slate-700">Reach Out kepada GBK (untuk anak dipilih)</label>
+              <textarea
+                value={parentReachOut}
+                onChange={(e) => setParentReachOut(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 p-2 text-xs"
+                rows={3}
+                placeholder="Contoh: Saya perhatikan anak saya kelihatan sedih..."
+                disabled={!selectedChildId}
+              />
+              <button
+                type="button"
+                disabled={!selectedChildId || !parentReachOut.trim() || sendingReachOut}
+                onClick={async () => {
+                  if (!profile || !selectedChildId) return
+                  setSendingReachOut(true)
+                  try {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const { error } = await (supabase as any).from('reach_out_messages').insert({
+                      student_id: selectedChildId,
+                      sender_id: profile.id,
+                      message: parentReachOut.trim(),
+                      source: 'ibu_bapa',
+                      status: 'baru',
+                    })
+                    if (error) throw error
+                    setParentReachOut('')
+                    alert('Mesej dihantar kepada GBK.')
+                  } catch (e) {
+                    console.error(e)
+                    alert('Gagal hantar. Pastikan migration 012 Reach Out dah apply.')
+                  } finally {
+                    setSendingReachOut(false)
+                  }
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-600 py-2.5 text-xs font-black text-white shadow-lg shadow-rose-200 transition hover:bg-rose-700 disabled:opacity-50"
+              >
+                <Heart size={14} />
+                {sendingReachOut ? 'Menghantar...' : 'Hantar Reach Out'}
+              </button>
+            </div>
             <button
               onClick={() => router.push('/murid/sesi')}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-2.5 text-xs font-black text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"

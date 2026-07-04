@@ -269,6 +269,9 @@ export default function GBKDashboardPage() {
           <Link href="/gbk/kes" className="btn-secondary text-sm py-2 px-4">
             📋 Pengurusan Kes
           </Link>
+          <Link href="/gbk/reach-out" className="btn-secondary text-sm py-2 px-4">
+            📬 Reach Out
+          </Link>
         </div>
         {students.length === 0 ? (
           <p className="text-neutral-500 text-center py-8">Tiada data murid. Pastikan murid dah login dan isi refleksi.</p>

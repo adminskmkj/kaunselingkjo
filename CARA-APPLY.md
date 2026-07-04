@@ -59,3 +59,8 @@ SELECT level, COUNT(*) FROM risk_levels WHERE is_active = true GROUP BY level;
 
 - Case Management UI (status kes)
 - Reach Out inbox
+
+## Migration 012 (Reach Out)
+
+1. SQL Editor → paste **`supabase/migrations/012_reach_out_inbox.sql`** → Run
+2. Semak: `SELECT COUNT(*) FROM reach_out_messages;`

@@ -146,6 +146,24 @@ export type Database = {
         Insert: Omit<Database['public']['Tables']['counseling_sessions']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['counseling_sessions']['Insert']>
       }
+      reach_out_messages: {
+        Row: {
+          id: string
+          student_id: string
+          sender_id: string
+          message: string
+          source: 'murid' | 'ibu_bapa' | 'refleksi'
+          status: 'baru' | 'dibaca' | 'dijawab' | 'ditutup'
+          checkin_id: string | null
+          counselor_id: string | null
+          reply_message: string | null
+          replied_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['reach_out_messages']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['reach_out_messages']['Insert']>
+      }
       notifications: {
         Row: {
           id: string
@@ -188,6 +206,8 @@ export type Database = {
       notification_type: 'reminder_checkin' | 'reminder_session' | 'alert_no_checkin' | 'motivational_message' | 'alert_risk_change'
       emotion_type: 'gembira' | 'sedih' | 'tertekan' | 'biasa'
       need_help: 'ya' | 'tidak' | 'mungkin'
+      reach_out_source: 'murid' | 'ibu_bapa' | 'refleksi'
+      reach_out_status: 'baru' | 'dibaca' | 'dijawab' | 'ditutup'
     }
   }
 }
