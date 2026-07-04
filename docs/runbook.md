@@ -9,10 +9,12 @@ Migration SQL tidak auto-run dari GitHub/Vercel. Buka Supabase Dashboard → SQL
 1. `supabase/migrations/007_auto_profile_trigger.sql`
 2. `supabase/migrations/008_risk_levels_on_checkin.sql`
 3. `supabase/migrations/009_rls_hardening.sql`
+4. `supabase/migrations/010_separate_checkin_scores.sql` — **ikut `CARA-APPLY.md`**
 
 Lepas 007, Auth user baharu yang ada `user_metadata.role` akan auto dapat row `profiles`.
 Lepas 008, refleksi/checkin baharu akan auto update `risk_levels` aktif untuk dashboard GBK.
 Lepas 009, policy RLS lama yang terlalu longgar diketatkan dan direct user-write ke `points_tracker` ditutup.
+Lepas 010, skor disiplin/emosi berasingan; risk GBK ikut **emosi** (bukan skor gabungan).
 
 ## 2. Backfill profile lama
 

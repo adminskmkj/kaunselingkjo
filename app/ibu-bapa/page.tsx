@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { BarChart2, Flame, Trophy, TrendingUp, BookOpen, Heart } from 'lucide-react'
 
 type ChildRow = { id: string; full_name: string; class_name: string | null }
-type CheckinRow = { id: string; checkin_date: string; total_score: number | null; q7_perasaan_emosi: string | null; q9_tahap_stres: number | null }
+type CheckinRow = { id: string; checkin_date: string; discipline_score: number | null; emotional_score: number | null; q7_perasaan_emosi: string | null; q9_tahap_stres: number | null }
 type PointsRow = { total_points: number; current_streak: number }
 type BadgeRow = { id: string; badge_name: string; icon: string | null }
 
@@ -73,7 +73,7 @@ export default function IbuBapaPage() {
   async function fetchChildData(id: string) {
     const [ciRes, ptRes, bdRes] = await Promise.all([
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase as any).from('checkins').select('id,checkin_date,total_score,q7_perasaan_emosi,q9_tahap_stres').eq('student_id', id).order('checkin_date', { ascending: false }).limit(10),
+      (supabase as any).from('checkins').select('id,checkin_date,discipline_score,emotional_score,q7_perasaan_emosi,q9_tahap_stres').eq('student_id', id).order('checkin_date', { ascending: false }).limit(10),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (supabase as any).from('points_tracker').select('total_points,current_streak').eq('student_id', id).maybeSingle(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,7 +85,8 @@ export default function IbuBapaPage() {
   }
 
   const selectedChild = children.find((c) => c.id === selectedChildId)
-  const latestScore = checkins[0]?.total_score ?? 0
+  const latestDisc = checkins[0]?.discipline_score ?? 0
+  const latestEmo = checkins[0]?.emotional_score ?? 0
   const recentCheckins = [...checkins].slice(0, 7).reverse()
 
   if (authLoading || loading) return (
@@ -140,15 +141,25 @@ export default function IbuBapaPage() {
                 <p className="mt-1 text-xs opacity-60">Perkembangan semasa</p>
               </div>
             </div>
-            <ScoreRing pct={Math.round(latestScore)} />
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <div className="text-center">
+                <ScoreRing pct={Math.round(latestDisc)} />
+                <p className="mt-2 text-xs font-bold opacity-90">Disiplin</p>
+              </div>
+              <div className="text-center">
+                <ScoreRing pct={Math.round(latestEmo)} />
+                <p className="mt-2 text-xs font-bold opacity-90">Emosi</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* KPI */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
         {[
-          { icon: <BarChart2 size={20} />, label: 'Skor Terkini', value: latestScore ? `${Math.round(latestScore)}%` : '--', sub: 'Refleksi terakhir', bg: 'from-blue-500 to-indigo-600' },
+          { icon: <BarChart2 size={20} />, label: 'Skor Disiplin', value: latestDisc ? `${Math.round(latestDisc)}%` : '--', sub: 'Refleksi terakhir', bg: 'from-blue-500 to-indigo-600' },
+          { icon: <Heart size={20} />, label: 'Skor Emosi', value: latestEmo ? `${Math.round(latestEmo)}%` : '--', sub: 'Refleksi terakhir', bg: 'from-violet-500 to-purple-600' },
           { icon: <Flame size={20} />, label: 'Streak', value: `${points?.current_streak ?? 0} hari`, sub: 'Streak semasa', bg: 'from-orange-400 to-rose-500' },
           { icon: <TrendingUp size={20} />, label: 'Jumlah Mata', value: points?.total_points ?? 0, sub: 'Dikumpul setakat ini', bg: 'from-emerald-500 to-teal-600' },
           { icon: <Trophy size={20} />, label: 'Lencana', value: badges.length, sub: 'Pencapaian diperoleh', bg: 'from-amber-400 to-orange-500' },
@@ -168,25 +179,47 @@ export default function IbuBapaPage() {
         <div className="space-y-6 lg:col-span-2">
 
           {/* Trend skor */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60">
-            <h2 className="mb-4 text-lg font-black text-slate-900">Trend Skor Disiplin (7 Hari Terkini)</h2>
-            {recentCheckins.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-400">Belum ada rekod refleksi diisi.</p>
-            ) : (
-              <div className="flex items-end gap-2 h-28">
-                {recentCheckins.map((h, i) => {
-                  const pct = h.total_score ?? 0
-                  const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
-                  return (
-                    <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                      <span className="text-xs font-bold text-slate-600">{Math.round(pct)}%</span>
-                      <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 80}px`, minHeight: 4 }} />
-                      <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60 space-y-6">
+            <div>
+              <h2 className="mb-3 text-base font-black text-slate-900">Trend Skor Disiplin (7 Hari)</h2>
+              {recentCheckins.length === 0 ? (
+                <p className="py-4 text-center text-sm text-slate-400">Belum ada rekod.</p>
+              ) : (
+                <div className="flex items-end gap-2 h-24">
+                  {recentCheckins.map((h, i) => {
+                    const pct = Math.round(h.discipline_score ?? 0)
+                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
+                    return (
+                      <div key={`d-${i}`} className="flex flex-1 flex-col items-center gap-1">
+                        <span className="text-[10px] font-bold text-slate-600">{pct}%</span>
+                        <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
+                        <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            <div>
+              <h2 className="mb-3 text-base font-black text-slate-900">Trend Skor Emosi (7 Hari)</h2>
+              {recentCheckins.length === 0 ? (
+                <p className="py-4 text-center text-sm text-slate-400">Belum ada rekod.</p>
+              ) : (
+                <div className="flex items-end gap-2 h-24">
+                  {recentCheckins.map((h, i) => {
+                    const pct = Math.round(h.emotional_score ?? 0)
+                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-violet-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
+                    return (
+                      <div key={`e-${i}`} className="flex flex-1 flex-col items-center gap-1">
+                        <span className="text-[10px] font-bold text-slate-600">{pct}%</span>
+                        <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
+                        <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Sejarah refleksi */}
@@ -199,8 +232,9 @@ export default function IbuBapaPage() {
             ) : (
               <div className="divide-y divide-slate-50">
                 {checkins.slice(0, 8).map((c) => {
-                  const pct = Math.round(c.total_score ?? 0)
-                  const color = pct >= 80 ? 'text-emerald-600 bg-emerald-50' : pct >= 60 ? 'text-blue-600 bg-blue-50' : pct >= 40 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50'
+                  const disc = Math.round(c.discipline_score ?? 0)
+                  const emo = Math.round(c.emotional_score ?? 0)
+                  const color = emo >= 80 ? 'text-emerald-600 bg-emerald-50' : emo >= 60 ? 'text-blue-600 bg-blue-50' : emo >= 40 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50'
                   return (
                     <div key={c.id} className="flex items-center gap-4 px-6 py-3 hover:bg-slate-50/60 transition">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-xl">
@@ -212,7 +246,7 @@ export default function IbuBapaPage() {
                           Emosi: {c.q7_perasaan_emosi || '—'} · Stres: {c.q9_tahap_stres ?? '—'}/10
                         </p>
                       </div>
-                      <span className={`rounded-full px-3 py-1 text-xs font-black ${color}`}>{pct}%</span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-black ${color}`}>D {disc}% · E {emo}%</span>
                     </div>
                   )
                 })}

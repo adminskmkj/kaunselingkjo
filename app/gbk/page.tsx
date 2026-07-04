@@ -95,14 +95,14 @@ export default function GBKDashboardPage() {
 
       const { data: checkins, error: checkinError } = await supabase
         .from('checkins')
-        .select('student_id, total_score, checkin_date')
+        .select('student_id, emotional_score, checkin_date')
         .in('student_id', studentIds)
         .gte('checkin_date', fourteenDaysAgo.toISOString().split('T')[0])
         .order('checkin_date', { ascending: false })
 
       if (checkinError) throw checkinError
 
-      type CheckinRow = { student_id: string; total_score: number | null; checkin_date: string }
+      type CheckinRow = { student_id: string; emotional_score: number | null; checkin_date: string }
       const typedCheckins = (checkins || []) as CheckinRow[]
 
       // Build stats map
@@ -128,7 +128,7 @@ export default function GBKDashboardPage() {
         }
         const entry = statsMap.get(sid)!
 
-        const score = c.total_score || 0
+        const score = c.emotional_score || 0
         if (recent) {
           entry.recentSum += score
           entry.recentCount++
@@ -271,7 +271,7 @@ export default function GBKDashboardPage() {
             <table className="min-w-full">
               <thead className="bg-neutral-50 border-y border-neutral-200">
                 <tr>
-                  {['Murid', 'Kelas', 'Skor (7d avg)', 'Trend', 'Risiko', 'Tindakan'].map((h) => (
+                  {['Murid', 'Kelas', 'Skor Emosi (7d avg)', 'Trend', 'Risiko', 'Tindakan'].map((h) => (
                     <th key={h} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-600">
                       {h}
                     </th>

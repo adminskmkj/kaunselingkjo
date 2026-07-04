@@ -43,10 +43,15 @@ export type Database = {
           q8_hubungan_rakan: number | null
           q9_tahap_stres: number | null
           q10_perlukan_bantuan: 'ya' | 'tidak' | 'mungkin' | null
+          discipline_score: number | null
+          emotional_score: number | null
           total_score: number | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['checkins']['Row'], 'id' | 'created_at' | 'total_score'>
+        Insert: Omit<
+          Database['public']['Tables']['checkins']['Row'],
+          'id' | 'created_at' | 'total_score' | 'discipline_score' | 'emotional_score'
+        >
         Update: Partial<Database['public']['Tables']['checkins']['Insert']>
       }
       risk_levels: {

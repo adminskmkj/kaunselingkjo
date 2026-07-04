@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { PortalShell } from '@/components/portal-shell'
-import { Flame, Star, BarChart2, BookOpen, CalendarCheck, Trophy, ArrowRight, TrendingUp } from 'lucide-react'
+import { Flame, Star, BarChart2, BookOpen, CalendarCheck, Trophy, ArrowRight, TrendingUp, Heart } from 'lucide-react'
 
 type PointsTracker = { total_points: number; current_streak: number; longest_streak: number }
-type TodayCheckin = { id: string; total_score: number }
-type CheckinHistory = { checkin_date: string; total_score: number | null }
+type TodayCheckin = { id: string; discipline_score: number | null; emotional_score: number | null }
+type CheckinHistory = { checkin_date: string; discipline_score: number | null; emotional_score: number | null }
 type Badge = { id: string; badge_name: string; icon: string | null }
 
 const quickLinks = [
@@ -62,8 +62,8 @@ export default function MuridDashboard() {
       const today = new Date().toISOString().split('T')[0]
       const [ptRes, ciRes, histRes, badgeRes] = await Promise.all([
         supabase.from('points_tracker').select('total_points,current_streak,longest_streak').eq('student_id', profile.id).maybeSingle(),
-        supabase.from('checkins').select('id,total_score').eq('student_id', profile.id).eq('checkin_date', today).maybeSingle(),
-        supabase.from('checkins').select('checkin_date,total_score').eq('student_id', profile.id).order('checkin_date', { ascending: false }).limit(7),
+        supabase.from('checkins').select('id,discipline_score,emotional_score').eq('student_id', profile.id).eq('checkin_date', today).maybeSingle(),
+        supabase.from('checkins').select('checkin_date,discipline_score,emotional_score').eq('student_id', profile.id).order('checkin_date', { ascending: false }).limit(7),
         supabase.from('student_badges').select('id,badge_name,icon').eq('student_id', profile.id).limit(6),
       ])
       setPoints(ptRes.data || { total_points: 0, current_streak: 0, longest_streak: 0 })
@@ -81,19 +81,24 @@ export default function MuridDashboard() {
     </PortalShell>
   )
 
-  const todayPct = todayCheckin?.total_score ?? 0
-  const avgScore = history.length
-    ? Math.round(history.reduce((a, c) => a + (c.total_score ?? 0), 0) / history.length)
+  const todayDisc = Math.round(todayCheckin?.discipline_score ?? 0)
+  const todayEmo = Math.round(todayCheckin?.emotional_score ?? 0)
+  const avgDisc = history.length
+    ? Math.round(history.reduce((a, c) => a + (c.discipline_score ?? 0), 0) / history.length)
+    : 0
+  const avgEmo = history.length
+    ? Math.round(history.reduce((a, c) => a + (c.emotional_score ?? 0), 0) / history.length)
     : 0
 
   return (
     <PortalShell title="Dashboard Murid" subtitle="Pantau perkembangan dan refleksi harian anda">
       {/* KPI */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
         {[
           { icon: <Flame size={20} />, label: 'Streak Harian', value: `${points?.current_streak ?? 0} hari`, sub: `Rekod: ${points?.longest_streak ?? 0} hari`, bg: 'from-orange-400 to-rose-500' },
           { icon: <Star size={20} />, label: 'Jumlah Mata', value: points?.total_points ?? 0, sub: 'Dikumpul setakat ini', bg: 'from-amber-400 to-yellow-500' },
-          { icon: <BarChart2 size={20} />, label: 'Skor Purata', value: `${avgScore}%`, sub: '7 hari terkini', bg: 'from-blue-500 to-indigo-600' },
+          { icon: <BarChart2 size={20} />, label: 'Skor Disiplin', value: `${avgDisc}%`, sub: 'Purata 7 hari', bg: 'from-blue-500 to-indigo-600' },
+          { icon: <Heart size={20} />, label: 'Skor Emosi', value: `${avgEmo}%`, sub: 'Purata 7 hari', bg: 'from-violet-500 to-purple-600' },
           { icon: <Trophy size={20} />, label: 'Lencana', value: badges.length, sub: 'Pencapaian diperoleh', bg: 'from-emerald-500 to-teal-600' },
         ].map((k) => (
           <div key={k.label} className="overflow-hidden rounded-2xl bg-white p-5 shadow-lg shadow-slate-200/60 transition hover:shadow-xl hover:-translate-y-0.5">
@@ -110,28 +115,53 @@ export default function MuridDashboard() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           {/* Skor + Trend */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-black text-slate-900">Trend Skor Disiplin (7 Hari)</h2>
-              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{avgScore}% purata</span>
-            </div>
-            {history.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-400">Belum ada rekod refleksi.</p>
-            ) : (
-              <div className="flex items-end gap-2 h-28">
-                {[...history].reverse().map((h, i) => {
-                  const pct = h.total_score ?? 0
-                  const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
-                  return (
-                    <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                      <span className="text-xs font-bold text-slate-600">{pct}%</span>
-                      <div className={`w-full rounded-t-lg ${color} transition-all`} style={{ height: `${(pct / 100) * 80}px` }} />
-                      <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
-                    </div>
-                  )
-                })}
+          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60 space-y-6">
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-base font-black text-slate-900">Trend Skor Disiplin (7 Hari)</h2>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{avgDisc}% purata</span>
               </div>
-            )}
+              {history.length === 0 ? (
+                <p className="py-4 text-center text-sm text-slate-400">Belum ada rekod.</p>
+              ) : (
+                <div className="flex items-end gap-2 h-24">
+                  {[...history].reverse().map((h, i) => {
+                    const pct = Math.round(h.discipline_score ?? 0)
+                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
+                    return (
+                      <div key={`d-${i}`} className="flex flex-1 flex-col items-center gap-1">
+                        <span className="text-[10px] font-bold text-slate-600">{pct}%</span>
+                        <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
+                        <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-base font-black text-slate-900">Trend Skor Emosi (7 Hari)</h2>
+                <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-violet-700">{avgEmo}% purata</span>
+              </div>
+              {history.length === 0 ? (
+                <p className="py-4 text-center text-sm text-slate-400">Belum ada rekod.</p>
+              ) : (
+                <div className="flex items-end gap-2 h-24">
+                  {[...history].reverse().map((h, i) => {
+                    const pct = Math.round(h.emotional_score ?? 0)
+                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-violet-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
+                    return (
+                      <div key={`e-${i}`} className="flex flex-1 flex-col items-center gap-1">
+                        <span className="text-[10px] font-bold text-slate-600">{pct}%</span>
+                        <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
+                        <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Lencana */}
@@ -162,8 +192,19 @@ export default function MuridDashboard() {
           {/* Skor hari ini */}
           <div className="overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white shadow-xl">
             <p className="mb-4 text-sm font-bold opacity-80">Skor Hari Ini</p>
-            <div className="flex justify-center">
-              {todayCheckin ? <ScoreRing pct={todayPct} /> : (
+            <div className="flex justify-center gap-6">
+              {todayCheckin ? (
+                <>
+                  <div className="text-center">
+                    <ScoreRing pct={todayDisc} />
+                    <p className="mt-2 text-xs font-bold opacity-90">Disiplin</p>
+                  </div>
+                  <div className="text-center">
+                    <ScoreRing pct={todayEmo} />
+                    <p className="mt-2 text-xs font-bold opacity-90">Emosi</p>
+                  </div>
+                </>
+              ) : (
                 <div className="py-4 text-center">
                   <p className="text-4xl">📝</p>
                   <p className="mt-3 text-sm font-bold opacity-80">Belum isi refleksi</p>

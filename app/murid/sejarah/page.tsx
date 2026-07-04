@@ -10,6 +10,8 @@ type CheckinRow = {
   id: string
   checkin_date: string
   total_score: number | null
+  discipline_score: number | null
+  emotional_score: number | null
   q7_perasaan_emosi: string | null
   q9_tahap_stres: number | null
   q10_perlukan_bantuan: string | null
@@ -45,7 +47,7 @@ export default function SejarahRefleksiPage() {
     async function fetchRows() {
       const { data, error } = await (supabase as unknown as CheckinClient)
         .from('checkins')
-        .select('id, checkin_date, total_score, q7_perasaan_emosi, q9_tahap_stres, q10_perlukan_bantuan')
+        .select('id, checkin_date, discipline_score, emotional_score, q7_perasaan_emosi, q9_tahap_stres, q10_perlukan_bantuan')
         .eq('student_id', profile!.id)
         .order('checkin_date', { ascending: false })
 
@@ -72,7 +74,7 @@ export default function SejarahRefleksiPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {['Tarikh', 'Skor', 'Emosi', 'Stres', 'Perlu Bantuan'].map((h) => (
+                {['Tarikh', 'Disiplin', 'Emosi', 'Perasaan', 'Stres', 'Bantuan'].map((h) => (
                   <th key={h} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{h}</th>
                 ))}
               </tr>
@@ -81,7 +83,8 @@ export default function SejarahRefleksiPage() {
               {rows.map((row) => (
                 <tr key={row.id}>
                   <td className="px-6 py-4 text-sm text-gray-900">{row.checkin_date}</td>
-                  <td className="px-6 py-4 text-sm font-semibold text-blue-600">{row.total_score == null ? '-' : `${row.total_score.toFixed(0)}%`}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-blue-600">{row.discipline_score == null ? '-' : `${row.discipline_score.toFixed(0)}%`}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-violet-600">{row.emotional_score == null ? '-' : `${row.emotional_score.toFixed(0)}%`}</td>
                   <td className="px-6 py-4 text-sm capitalize text-gray-700">{row.q7_perasaan_emosi || '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{row.q9_tahap_stres ?? '-'}</td>
                   <td className="px-6 py-4 text-sm capitalize text-gray-700">{row.q10_perlukan_bantuan || '-'}</td>
