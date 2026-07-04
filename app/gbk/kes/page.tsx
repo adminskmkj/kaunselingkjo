@@ -15,7 +15,8 @@ import {
   caseStatusBadgeClass,
 } from '@/lib/case-status'
 import { formatStatusLogLine, isCaseOverdue } from '@/lib/case-status-change'
-import { ClipboardList, ArrowLeft, CheckCircle2, Pin, AlertTriangle, History } from 'lucide-react'
+import { openInterventionPrint } from '@/lib/intervention-print'
+import { ClipboardList, ArrowLeft, CheckCircle2, Pin, AlertTriangle, History, Printer } from 'lucide-react'
 
 type CaseRow = {
   id: string
@@ -27,6 +28,9 @@ type CaseRow = {
   follow_up_action: string | null
   case_status: CaseStatus
   tarikh_susulan: string | null
+  referral_to: string | null
+  counselor_id: string | null
+  counselor_name: string
   updated_at: string
   student_name: string
   class_name: string | null
@@ -79,24 +83,26 @@ export default function GBKCasesPage() {
       const { data: cases, error } = await (supabase as any)
         .from('intervention_records')
         .select(
-          'id, student_id, session_date, intervention_type, objective, summary, follow_up_action, case_status, tarikh_susulan, updated_at'
+          'id, student_id, counselor_id, session_date, intervention_type, objective, summary, follow_up_action, case_status, tarikh_susulan, referral_to, updated_at'
         )
         .order('updated_at', { ascending: false })
         .limit(200)
 
       if (error) throw error
 
-      const typed = (cases || []) as Omit<CaseRow, 'student_name' | 'class_name'>[]
+      const typed = (cases || []) as Omit<CaseRow, 'student_name' | 'class_name' | 'counselor_name'>[]
       if (typed.length === 0) {
         setRows([])
         return
       }
 
       const ids = [...new Set(typed.map((c) => c.student_id))]
+      const cids = [...new Set(typed.map((c) => c.counselor_id).filter(Boolean))] as string[]
+      const allProfileIds = [...new Set([...ids, ...cids])]
       const { data: profiles, error: pErr } = await supabase
         .from('profiles')
         .select('id, full_name, class_name')
-        .in('id', ids)
+        .in('id', allProfileIds)
 
       if (pErr) throw pErr
 
@@ -106,11 +112,13 @@ export default function GBKCasesPage() {
       setRows(
         typed.map((c) => {
           const p = pmap.get(c.student_id)
+          const counselor = c.counselor_id ? pmap.get(c.counselor_id) : null
           return {
             ...c,
             case_status: (c.case_status || 'baru') as CaseStatus,
             student_name: p?.full_name || '—',
             class_name: p?.class_name ?? null,
+            counselor_name: counselor?.full_name || 'GBK',
           }
         })
       )
@@ -363,14 +371,37 @@ export default function GBKCasesPage() {
                       </td>
                       <td className="px-4 py-3 max-w-[200px] text-xs text-slate-500 line-clamp-3">{r.summary || '—'}</td>
                       <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => openHistory(r)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                        >
-                          <History size={14} />
-                          History
-                        </button>
+                        <div className="flex flex-col gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => openInterventionPrint({
+                              id: r.id,
+                              student_name: r.student_name,
+                              class_name: r.class_name,
+                              session_date: r.session_date,
+                              intervention_type: r.intervention_type,
+                              objective: r.objective,
+                              summary: r.summary,
+                              follow_up_action: r.follow_up_action,
+                              case_status: r.case_status,
+                              tarikh_susulan: r.tarikh_susulan,
+                              referral_to: r.referral_to,
+                              counselor_name: r.counselor_name,
+                            })}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          >
+                            <Printer size={14} />
+                            Cetak
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openHistory(r)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          >
+                            <History size={14} />
+                            History
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )

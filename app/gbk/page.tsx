@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
@@ -39,6 +39,7 @@ export default function GBKDashboardPage() {
   const { profile, loading: authLoading } = useAuth()
   const { counts: reachBadges } = useReachOutBadges(profile?.role, profile?.id)
   const [students, setStudents] = useState<StudentRisk[]>([])
+  const [openCaseStudentIds, setOpenCaseStudentIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [riskListLevel, setRiskListLevel] = useState<RiskLevel | null>(null)
@@ -96,6 +97,20 @@ export default function GBKDashboardPage() {
         .eq('role', 'student')
 
       if (profileError) throw profileError
+
+      // Murid yang sudah ada kes aktif (GBK dah ambil tindakan) — keluar dari senarai perhatian
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: openCases, error: caseErr } = await (supabase as any)
+        .from('intervention_records')
+        .select('student_id')
+        .neq('case_status', 'selesai')
+
+      if (caseErr) throw caseErr
+
+      const triaged = new Set<string>(
+        ((openCases || []) as { student_id: string }[]).map((c) => c.student_id)
+      )
+      setOpenCaseStudentIds(triaged)
 
       // Get recent checkins (last 14 days)
       const fourteenDaysAgo = new Date()
@@ -193,6 +208,16 @@ export default function GBKDashboardPage() {
     }
   }
 
+  const attentionStudents = useMemo(
+    () =>
+      students.filter(
+        (s) =>
+          (s.level === 'merah' || s.level === 'jingga' || s.level === 'kuning') &&
+          !openCaseStudentIds.has(s.student_id)
+      ),
+    [students, openCaseStudentIds]
+  )
+
   const counts = {
     hijau: students.filter((s) => s.level === 'hijau').length,
     kuning: students.filter((s) => s.level === 'kuning').length,
@@ -256,7 +281,7 @@ export default function GBKDashboardPage() {
       if (error) throw error
 
       setShowModal(false)
-      alert('✅ Rekod intervensi disimpan (status: Baru). Urus status di Pengurusan Kes.')
+      alert('✅ Rekod disimpan. Murid keluar dari senarai perhatian. Urus & cetak di Pengurusan Kes.')
       fetchStudents()
     } catch (error) {
       console.error('Error saving intervention:', error)
@@ -318,6 +343,9 @@ export default function GBKDashboardPage() {
       <section className="card">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-bold text-neutral-900">Murid Perlu Perhatian</h2>
+          <p className="w-full text-xs text-neutral-500 sm:w-auto">
+            Jingga / kuning / merah tanpa kes aktif. Selepas intervensi → lihat di Pengurusan Kes.
+          </p>
           <Link href="/gbk/kes" className="btn-secondary text-sm py-2 px-4">
             📋 Pengurusan Kes
           </Link>
@@ -330,8 +358,10 @@ export default function GBKDashboardPage() {
             )}
           </Link>
         </div>
-        {students.length === 0 ? (
-          <p className="text-neutral-500 text-center py-8">Tiada data murid. Pastikan murid dah login dan isi refleksi.</p>
+        {attentionStudents.length === 0 ? (
+          <p className="text-neutral-500 text-center py-8">
+            Tiada murid menunggu tindakan — semua ada kes aktif atau risiko hijau/stabil.
+          </p>
         ) : (
           <div className="overflow-x-auto -mx-6">
             <table className="min-w-full">
@@ -345,7 +375,7 @@ export default function GBKDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
-                {students.map((s) => (
+                {attentionStudents.map((s) => (
                   <tr key={s.student_id} className="hover:bg-neutral-50 transition-colors">
                     <td className="px-6 py-4 font-semibold text-neutral-900">{s.full_name}</td>
                     <td className="px-6 py-4 text-sm text-neutral-600">{s.class_name || '-'}</td>
