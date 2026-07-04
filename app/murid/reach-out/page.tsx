@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { PortalShell } from '@/components/portal-shell'
-import { REACH_OUT_STATUS_LABELS, ReachOutStatus, reachOutStatusClass } from '@/lib/reach-out-status'
+import { markStudentReachOutRepliesSeen } from '@/lib/use-reach-out-badges'
 import { HeartHandshake, Send } from 'lucide-react'
 
 type Msg = {
@@ -52,6 +52,10 @@ export default function MuridReachOutPage() {
           status: m.status as ReachOutStatus,
         }))
       )
+      if (profile?.id) {
+        await markStudentReachOutRepliesSeen(profile.id)
+        window.dispatchEvent(new Event('reach-out-badge-refresh'))
+      }
     } catch (e) {
       console.error(e)
     } finally {

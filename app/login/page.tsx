@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
+import { ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -17,109 +17,72 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     try {
       await signIn(identifier, password)
       router.push('/dashboard')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login gagal. Sila cuba lagi.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Log masuk gagal')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-primary-50/30 to-accent-50/20 p-4">
-      <div className="w-full max-w-md">
-        {/* Logo & Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 text-white font-bold text-3xl shadow-strong mb-4">
-            S
-          </div>
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">S.T.A.R KJo</h1>
-          <p className="text-neutral-600 font-medium">Student Tracker Attitude Report</p>
-          <p className="text-sm text-neutral-500 mt-1">Sistem Pemantauan Tingkah Laku Murid</p>
-        </div>
-
-        {/* Login Card */}
+    <div className="auth-shell flex min-h-[100dvh] items-center justify-center p-4">
+      <div className="relative z-10 w-full max-w-md">
         <div className="card">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-700 text-2xl font-bold text-white shadow-md">
+              S
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900">S.T.A.R KJo</h1>
+            <p className="mt-1 text-sm text-slate-500">SMK Kampung Jawa</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="identifier" className="block text-sm font-semibold text-neutral-700 mb-2">
-                IC (Murid) / Email (Guru)
+              <label htmlFor="identifier" className="mb-2 block text-sm font-semibold text-slate-700">
+                No. Kad Pengenalan / E-mel
               </label>
               <input
                 id="identifier"
                 type="text"
-                placeholder="200106070282"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="input-field"
+                placeholder="12 digit IC atau e-mel staff"
                 required
-                disabled={loading}
+                autoComplete="username"
               />
-              <p className="text-xs text-neutral-500 mt-2">
-                <span className="font-medium">Murid:</span> 12 digit IC &nbsp;|&nbsp; <span className="font-medium">Guru/GBK:</span> Email sekolah
-              </p>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-neutral-700 mb-2">
+              <label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-700">
                 Kata Laluan
               </label>
               <input
                 id="password"
                 type="password"
-                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
+                placeholder="••••••••"
                 required
-                disabled={loading}
+                autoComplete="current-password"
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                <span className="text-red-600 text-lg">⚠️</span>
-                <p className="text-sm text-red-700 flex-1">{error}</p>
-              </div>
+              <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Memasuki...
-                </span>
-              ) : (
-                'Log Masuk'
-              )}
+            <button type="submit" disabled={loading} className="btn-primary flex w-full items-center justify-center gap-2">
+              {loading ? 'Sedang log masuk...' : 'Log Masuk'}
+              {!loading && <ArrowRight size={18} />}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <Link href="/" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-              ← Kembali ke halaman utama
-            </Link>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-neutral-500">
-            Untuk bantuan, hubungi pentadbir sekolah
-          </p>
-          <p className="text-xs text-neutral-400 mt-2">
-            SMK Kampung Jawa • Sistem S.T.A.R
-          </p>
+          <p className="mt-6 text-center text-xs text-slate-400">Murid: guna No. KP 12 digit · Staff: e-mel sekolah</p>
         </div>
       </div>
     </div>

@@ -69,8 +69,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-primary-50/30 to-accent-50/20 p-4">
-      <div className="card w-full max-w-md">
+    <div className="auth-shell flex min-h-[100dvh] items-center justify-center p-4">
+      <div className="relative z-10 card w-full max-w-md">
         <h1 className="text-2xl font-bold text-neutral-900 mb-2">Tukar Kata Laluan</h1>
         <p className="text-sm text-neutral-600 mb-6">
           Ini login pertama anda. Sila tetapkan kata laluan peribadi sebelum masuk sistem.

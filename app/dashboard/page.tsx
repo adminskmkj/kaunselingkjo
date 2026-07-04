@@ -41,10 +41,10 @@ export default function DashboardPage() {
   }, [profile, loading, router])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Memuatkan...</p>
+    <div className="auth-shell flex min-h-[100dvh] items-center justify-center">
+      <div className="relative z-10 text-center">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-600" />
+        <p className="mt-4 text-sm font-medium text-slate-600">Memuatkan...</p>
       </div>
     </div>
   )

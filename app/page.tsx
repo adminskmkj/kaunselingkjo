@@ -1,89 +1,56 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { GraduationCap, Compass, Users, Home as HomeIcon, ArrowRight } from 'lucide-react'
 
 export default function Home() {
   const router = useRouter()
 
+  const roles = [
+    { icon: GraduationCap, title: 'Murid', desc: 'Refleksi harian & perkembangan diri', color: 'text-cyan-700 bg-cyan-50' },
+    { icon: Compass, title: 'GBK', desc: 'Intervensi awal & pemantauan risiko', color: 'text-emerald-700 bg-emerald-50' },
+    { icon: Users, title: 'Guru', desc: 'Catatan tingkah laku & kelas', color: 'text-slate-700 bg-slate-100' },
+    { icon: HomeIcon, title: 'Ibu Bapa', desc: 'Pantau perkembangan anak', color: 'text-amber-800 bg-amber-50' },
+  ]
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gradient-to-br from-neutral-50 via-primary-50/30 to-accent-50/20">
-
-      <div className="text-center space-y-8 max-w-4xl">
-        {/* Logo */}
-        <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-primary-600 to-primary-700 text-white font-bold text-4xl shadow-strong mb-4">
-          S
-        </div>
-
-        {/* Title */}
-        <div className="space-y-3">
-          <h1 className="text-5xl font-bold text-neutral-900 tracking-tight">
-            S.T.A.R KJo
-          </h1>
-          <p className="text-2xl font-semibold text-neutral-700">
-            Student Tracker Attitude Report
-          </p>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+    <div className="auth-shell flex flex-col items-center justify-center p-6 md:p-10">
+      <div className="relative z-10 w-full max-w-4xl space-y-10 text-center">
+        <div className="space-y-4">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-cyan-700 text-3xl font-bold text-white shadow-lg shadow-cyan-900/25">
+            S
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">S.T.A.R KJo</h1>
+          <p className="text-lg font-medium text-slate-600">Student Tracker Attitude Report</p>
+          <p className="mx-auto max-w-xl text-sm leading-relaxed text-slate-500 md:text-base">
             Sistem pemantauan tingkah laku dan intervensi awal murid SMK Kampung Jawa
           </p>
         </div>
 
-        {/* CTA */}
-        <div className="pt-6">
-          <button
-            onClick={() => router.push('/login')}
-            className="inline-flex items-center gap-2 bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-primary-700 transition-all duration-200 shadow-strong hover:shadow-xl hover:scale-105"
-          >
-            Log Masuk ke Sistem
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+        <button type="button" onClick={() => router.push('/login')} className="btn-primary inline-flex items-center gap-2 text-base">
+          Log Masuk ke Sistem
+          <ArrowRight size={18} />
+        </button>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {roles.map((r) => {
+            const Icon = r.icon
+            return (
+              <div key={r.title} className="card text-left transition hover:-translate-y-0.5">
+                <div className={`mb-4 inline-flex rounded-xl p-3 ${r.color}`}>
+                  <Icon size={22} strokeWidth={1.75} />
+                </div>
+                <h2 className="text-lg font-bold text-slate-900">{r.title}</h2>
+                <p className="mt-1 text-sm text-slate-600">{r.desc}</p>
+              </div>
+            )
+          })}
         </div>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-16">
-          <div className="card group hover:shadow-strong transition-all duration-200">
-            <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-              👨‍🎓
-            </div>
-            <h2 className="text-xl font-bold text-primary-600 mb-2">Murid</h2>
-            <p className="text-sm text-neutral-600">Refleksi harian & lihat perkembangan diri</p>
-          </div>
-
-          <div className="card group hover:shadow-strong transition-all duration-200">
-            <div className="w-12 h-12 rounded-xl bg-accent-100 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-              👨‍💼
-            </div>
-            <h2 className="text-xl font-bold text-accent-600 mb-2">GBK</h2>
-            <p className="text-sm text-neutral-600">Dashboard intervensi & pemantauan risiko</p>
-          </div>
-
-          <div className="card group hover:shadow-strong transition-all duration-200">
-            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-              👨‍🏫
-            </div>
-            <h2 className="text-xl font-bold text-purple-600 mb-2">Guru</h2>
-            <p className="text-sm text-neutral-600">Catatan tingkah laku & pantau kelas</p>
-          </div>
-
-          <div className="card group hover:shadow-strong transition-all duration-200">
-            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-              👨‍👩‍👧
-            </div>
-            <h2 className="text-xl font-bold text-orange-600 mb-2">Ibu Bapa</h2>
-            <p className="text-sm text-neutral-600">Lihat perkembangan anak anda</p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-neutral-200">
-          <p className="text-sm text-neutral-600 font-medium">
-            🎯 STEM & TVET : PEMACU ASPIRASI KERJAYA DIGITAL GENERASI MADANI
-          </p>
-          <p className="text-xs text-neutral-500 mt-2">
-            SMK Kampung Jawa • JBA1010
-          </p>
-        </div>
+        <footer className="border-t border-slate-200/80 pt-8 text-sm text-slate-500">
+          <p className="font-medium text-slate-600">STEM & TVET : Pemacu Aspirasi Kerjaya Digital Generasi Madani</p>
+          <p className="mt-1 text-xs">SMK Kampung Jawa · JBA1010</p>
+        </footer>
       </div>
     </div>
   )

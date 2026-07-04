@@ -13,7 +13,7 @@ import {
   ReachOutStatus,
   reachOutStatusClass,
 } from '@/lib/reach-out-status'
-import { ArrowLeft, Inbox } from 'lucide-react'
+import { ArrowLeft, Inbox, MessageSquare } from 'lucide-react'
 
 type Row = {
   id: string
@@ -174,8 +174,8 @@ export default function GBKReachOutPage() {
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard label="Baru" value={baruCount} icon="📬" tone="red" subtitle="Perlu tindakan" />
-        <StatCard label="Jumlah" value={rows.length} icon="💬" tone="blue" subtitle="Semua thread" />
+        <StatCard label="Baru" value={baruCount} icon={<Inbox size={22} />} tone="red" subtitle="Perlu tindakan" />
+        <StatCard label="Jumlah" value={rows.length} icon={<MessageSquare size={22} />} tone="blue" subtitle="Semua thread" />
       </div>
 
       <div className="mb-4 flex gap-2">
@@ -185,7 +185,7 @@ export default function GBKReachOutPage() {
             type="button"
             onClick={() => setFilter(f)}
             className={`rounded-full px-4 py-1.5 text-xs font-bold ${
-              filter === f ? 'bg-primary-600 text-white' : 'bg-white border border-slate-200 text-slate-600'
+              filter === f ? 'bg-cyan-700 text-white' : 'bg-white border border-slate-200 text-slate-600'
             }`}
           >
             {f === 'baru' ? 'Aktif (Baru/Dibaca)' : 'Semua'}

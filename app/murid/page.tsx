@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { PortalShell } from '@/components/portal-shell'
-import { Flame, Star, BarChart2, BookOpen, CalendarCheck, Trophy, ArrowRight, TrendingUp, Heart } from 'lucide-react'
+import { Flame, Star, BarChart2, BookOpen, CalendarCheck, Trophy, ArrowRight, TrendingUp, Heart, FileText } from 'lucide-react'
 
 type PointsTracker = { total_points: number; current_streak: number; longest_streak: number }
 type TodayCheckin = { id: string; discipline_score: number | null; emotional_score: number | null }
@@ -13,11 +13,11 @@ type CheckinHistory = { checkin_date: string; discipline_score: number | null; e
 type Badge = { id: string; badge_name: string; icon: string | null }
 
 const quickLinks = [
-  { icon: <TrendingUp size={22} />, label: 'Sejarah Refleksi', path: '/murid/sejarah', color: 'from-blue-500 to-indigo-600' },
-  { icon: <Trophy size={22} />, label: 'Lencana Saya', path: '/murid/lencana', color: 'from-amber-400 to-orange-500' },
-  { icon: <Heart size={22} />, label: 'Reach Out GBK', path: '/murid/reach-out', color: 'from-rose-500 to-pink-600' },
-  { icon: <CalendarCheck size={22} />, label: 'Sesi Kaunseling', path: '/murid/sesi', color: 'from-emerald-500 to-teal-600' },
-  { icon: <BookOpen size={22} />, label: 'Profil Saya', path: '/murid/profil', color: 'from-purple-500 to-pink-600' },
+  { icon: <TrendingUp size={22} />, label: 'Sejarah Refleksi', path: '/murid/sejarah', bg: 'bg-cyan-600' },
+  { icon: <Trophy size={22} />, label: 'Lencana Saya', path: '/murid/lencana', bg: 'bg-amber-500' },
+  { icon: <Heart size={22} />, label: 'Reach Out GBK', path: '/murid/reach-out', bg: 'bg-rose-600' },
+  { icon: <CalendarCheck size={22} />, label: 'Sesi Kaunseling', path: '/murid/sesi', bg: 'bg-emerald-600' },
+  { icon: <BookOpen size={22} />, label: 'Profil Saya', path: '/murid/profil', bg: 'bg-slate-700' },
 ]
 
 function ScoreRing({ pct }: { pct: number }) {
@@ -96,14 +96,14 @@ export default function MuridDashboard() {
       {/* KPI */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
         {[
-          { icon: <Flame size={20} />, label: 'Streak Harian', value: `${points?.current_streak ?? 0} hari`, sub: `Rekod: ${points?.longest_streak ?? 0} hari`, bg: 'from-orange-400 to-rose-500' },
-          { icon: <Star size={20} />, label: 'Jumlah Mata', value: points?.total_points ?? 0, sub: 'Dikumpul setakat ini', bg: 'from-amber-400 to-yellow-500' },
-          { icon: <BarChart2 size={20} />, label: 'Skor Disiplin', value: `${avgDisc}%`, sub: 'Purata 7 hari', bg: 'from-blue-500 to-indigo-600' },
-          { icon: <Heart size={20} />, label: 'Skor Emosi', value: `${avgEmo}%`, sub: 'Purata 7 hari', bg: 'from-violet-500 to-purple-600' },
-          { icon: <Trophy size={20} />, label: 'Lencana', value: badges.length, sub: 'Pencapaian diperoleh', bg: 'from-emerald-500 to-teal-600' },
+          { icon: <Flame size={20} />, label: 'Streak Harian', value: `${points?.current_streak ?? 0} hari`, sub: `Rekod: ${points?.longest_streak ?? 0} hari`, bg: 'bg-orange-500' },
+          { icon: <Star size={20} />, label: 'Jumlah Mata', value: points?.total_points ?? 0, sub: 'Dikumpul setakat ini', bg: 'bg-amber-500' },
+          { icon: <BarChart2 size={20} />, label: 'Skor Disiplin', value: `${avgDisc}%`, sub: 'Purata 7 hari', bg: 'bg-cyan-600' },
+          { icon: <Heart size={20} />, label: 'Skor Emosi', value: `${avgEmo}%`, sub: 'Purata 7 hari', bg: 'bg-slate-600' },
+          { icon: <Trophy size={20} />, label: 'Lencana', value: badges.length, sub: 'Pencapaian diperoleh', bg: 'bg-emerald-600' },
         ].map((k) => (
-          <div key={k.label} className="overflow-hidden rounded-2xl bg-white p-5 shadow-lg shadow-slate-200/60 transition hover:shadow-xl hover:-translate-y-0.5">
-            <div className={`mb-3 inline-flex items-center justify-center rounded-xl bg-gradient-to-br ${k.bg} p-2.5 text-white shadow`}>
+          <div key={k.label} className="panel transition hover:-translate-y-0.5">
+            <div className={`mb-3 inline-flex items-center justify-center rounded-xl ${k.bg} p-2.5 text-white`}>
               {k.icon}
             </div>
             <p className="text-2xl font-black text-slate-900">{k.value}</p>
@@ -174,7 +174,7 @@ export default function MuridDashboard() {
               </button>
             </div>
             {badges.length === 0 ? (
-              <p className="py-6 text-center text-sm text-slate-400">Belum ada lencana. Terus buat refleksi untuk unlock! 🚀</p>
+              <p className="py-6 text-center text-sm text-slate-400">Belum ada lencana. Terus buat refleksi untuk unlock.</p>
             ) : (
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
                 {badges.map((b) => (
@@ -191,8 +191,8 @@ export default function MuridDashboard() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Skor hari ini */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white shadow-xl">
-            <p className="mb-4 text-sm font-bold opacity-80">Skor Hari Ini</p>
+          <div className="panel bg-slate-900 text-white ring-0">
+            <p className="mb-4 text-sm font-semibold text-slate-300">Skor Hari Ini</p>
             <div className="flex justify-center gap-6">
               {todayCheckin ? (
                 <>
@@ -207,15 +207,15 @@ export default function MuridDashboard() {
                 </>
               ) : (
                 <div className="py-4 text-center">
-                  <p className="text-4xl">📝</p>
-                  <p className="mt-3 text-sm font-bold opacity-80">Belum isi refleksi</p>
+                  <FileText className="mx-auto text-slate-400" size={36} />
+                  <p className="mt-3 text-sm font-medium text-slate-300">Belum isi refleksi</p>
                 </div>
               )}
             </div>
             <button
               onClick={() => router.push('/murid/refleksi')}
               disabled={!!todayCheckin}
-              className="mt-5 w-full rounded-2xl bg-white py-3 text-sm font-black text-blue-700 shadow transition hover:bg-blue-50 disabled:opacity-50"
+              className="mt-5 w-full rounded-2xl bg-cyan-500 py-3 text-sm font-bold text-white transition hover:bg-cyan-400 disabled:opacity-50"
             >
               {todayCheckin ? '✓ Sudah Selesai Hari Ini' : 'Mula Refleksi Sekarang'}
             </button>
@@ -237,7 +237,7 @@ export default function MuridDashboard() {
                   onClick={() => router.push(l.path)}
                   className="group flex flex-col items-center gap-2 rounded-2xl bg-slate-50 p-4 text-center transition hover:shadow-md hover:-translate-y-0.5"
                 >
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${l.color} text-white shadow group-hover:scale-110 transition-transform`}>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${l.bg} text-white transition-transform group-hover:scale-105`}>
                     {l.icon}
                   </div>
                   <span className="text-xs font-bold text-slate-700">{l.label}</span>

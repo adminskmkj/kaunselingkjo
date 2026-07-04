@@ -12,7 +12,7 @@ import {
   CaseStatus,
   caseStatusBadgeClass,
 } from '@/lib/case-status'
-import { ClipboardList, ArrowLeft } from 'lucide-react'
+import { ClipboardList, ArrowLeft, CheckCircle2, Pin } from 'lucide-react'
 
 type CaseRow = {
   id: string
@@ -160,13 +160,13 @@ export default function GBKCasesPage() {
       </div>
 
       <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <StatCard label="Kes Aktif" value={counts.aktif} icon="📋" tone="blue" subtitle="Belum selesai" />
+        <StatCard label="Kes Aktif" value={counts.aktif} icon={<ClipboardList size={22} />} tone="blue" subtitle="Belum selesai" />
         {CASE_STATUS_ORDER.map((s) => (
           <StatCard
             key={s}
             label={CASE_STATUS_LABELS[s]}
             value={counts[s] ?? 0}
-            icon={s === 'selesai' ? '✅' : '📌'}
+            icon={s === 'selesai' ? <CheckCircle2 size={22} /> : <Pin size={22} />}
             tone={s === 'selesai' ? 'green' : s === 'rujuk_luar' ? 'orange' : 'purple'}
             subtitle=""
           />

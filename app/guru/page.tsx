@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PortalShell, StatCard } from '@/components/portal-shell'
+import { GraduationCap, Star, Trophy, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 
@@ -203,10 +204,10 @@ export default function GuruDashboardPage() {
 
       {/* KPI */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Murid dalam Kelas" value={total} icon="👨‍🎓" tone="blue" subtitle={classLabel} />
-        <StatCard label="Purata Mata" value={avgPts} icon="⭐" tone="purple" />
-        <StatCard label="Cemerlang" value={cemerlang} icon="🏆" tone="green" subtitle="≥800 mata" />
-        <StatCard label="Perlu Perhatian" value={amaran} icon="⚠️" tone="red" subtitle="Risiko jingga/merah" />
+        <StatCard label="Murid dalam Kelas" value={total} icon={<GraduationCap size={22} />} tone="blue" subtitle={classLabel} />
+        <StatCard label="Purata Mata" value={avgPts} icon={<Star size={22} />} tone="purple" />
+        <StatCard label="Cemerlang" value={cemerlang} icon={<Trophy size={22} />} tone="green" subtitle="≥800 mata" />
+        <StatCard label="Perlu Perhatian" value={amaran} icon={<AlertTriangle size={22} />} tone="red" subtitle="Risiko jingga/merah" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -252,7 +253,7 @@ export default function GuruDashboardPage() {
                   {filtered.map((s) => (
                     <div key={s.id} className="grid grid-cols-12 items-center gap-2 px-6 py-3 transition hover:bg-slate-50/60">
                       <div className="col-span-5 flex items-center gap-3 min-w-0">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-xs font-black text-white">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-700 text-xs font-bold text-white">
                           {s.full_name.charAt(0)}
                         </div>
                         <span className="truncate text-sm font-semibold text-slate-900">{s.full_name}</span>
@@ -330,7 +331,7 @@ export default function GuruDashboardPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-2xl bg-cyan-700 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-cyan-800 disabled:opacity-50"
               >
                 {saving ? 'Menyimpan...' : 'Simpan Rekod'}
               </button>

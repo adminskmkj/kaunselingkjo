@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { PortalShell, StatCard } from '@/components/portal-shell'
+import { CheckCircle2, AlertCircle, AlertTriangle, XCircle } from 'lucide-react'
 
 type RiskLevel = 'hijau' | 'kuning' | 'jingga' | 'merah'
 
@@ -256,10 +257,10 @@ export default function GBKDashboardPage() {
     <PortalShell title="Dashboard GBK" subtitle="Pemantauan risiko, intervensi awal dan sesi kaunseling">
       {/* Risk Level Stats */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-        <StatCard label="Hijau (Stabil)" value={counts.hijau} icon="🟢" tone="green" subtitle="Tiada risiko" />
-        <StatCard label="Kuning (Awas)" value={counts.kuning} icon="🟡" tone="orange" subtitle="Perlu pantau" />
-        <StatCard label="Jingga (Risiko)" value={counts.jingga} icon="🟠" tone="orange" subtitle="Perlu tindakan" />
-        <StatCard label="Merah (Kritikal)" value={counts.merah} icon="🔴" tone="red" subtitle="Segera" />
+        <StatCard label="Hijau (Stabil)" value={counts.hijau} icon={<CheckCircle2 size={22} />} tone="green" subtitle="Tiada risiko" />
+        <StatCard label="Kuning (Awas)" value={counts.kuning} icon={<AlertCircle size={22} />} tone="orange" subtitle="Perlu pantau" />
+        <StatCard label="Jingga (Risiko)" value={counts.jingga} icon={<AlertTriangle size={22} />} tone="orange" subtitle="Perlu tindakan" />
+        <StatCard label="Merah (Kritikal)" value={counts.merah} icon={<XCircle size={22} />} tone="red" subtitle="Segera" />
       </div>
 
       {/* Students Table */}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { PortalShell, StatCard } from '@/components/portal-shell'
+import { Users, FileText, AlertTriangle, Shield, Upload, Wrench, ClipboardList, BarChart3, Database } from 'lucide-react'
 
 type AuditRow = {
   id: string
@@ -65,12 +66,12 @@ export default function PentadbirPage() {
   }
 
   const modules = [
-    { icon: '📤', label: 'Upload Murid (Excel)', path: '/pentadbir/upload-murid', featured: true },
-    { icon: '👥', label: 'Pengurusan Staff', path: '/pentadbir/staff', featured: false },
-    { icon: '🔧', label: 'Repair Profiles', path: '/pentadbir/repair', featured: false },
-    { icon: '📋', label: 'Audit Log', path: '/pentadbir/audit', featured: false },
-    { icon: '📊', label: 'Laporan Bulanan', path: '#', featured: false },
-    { icon: '💾', label: 'Export Data', path: '#', featured: false },
+    { icon: Upload, label: 'Upload Murid (Excel)', path: '/pentadbir/upload-murid', featured: true },
+    { icon: Users, label: 'Pengurusan Staff', path: '/pentadbir/staff', featured: false },
+    { icon: Wrench, label: 'Repair Profiles', path: '/pentadbir/repair', featured: false },
+    { icon: ClipboardList, label: 'Audit Log', path: '/pentadbir/audit', featured: false },
+    { icon: BarChart3, label: 'Laporan Bulanan', path: '#', featured: false },
+    { icon: Database, label: 'Export Data', path: '#', featured: false },
   ]
 
   if (authLoading || loading) {
@@ -87,30 +88,34 @@ export default function PentadbirPage() {
     <PortalShell title="Dashboard Pentadbir" subtitle="Pengurusan sistem, murid, dan kakitangan sekolah">
       {/* Real Stats */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4 mb-8">
-        <StatCard label="Jumlah Murid" value={stats.totalMurid.toLocaleString('ms-MY')} icon="👥" tone="blue" subtitle="Terdaftar dalam sistem" />
-        <StatCard label="Refleksi Hari Ini" value={stats.todayCheckins.toLocaleString('ms-MY')} icon="📝" tone="green"
+        <StatCard label="Jumlah Murid" value={stats.totalMurid.toLocaleString('ms-MY')} icon={<Users size={22} />} tone="blue" subtitle="Terdaftar dalam sistem" />
+        <StatCard label="Refleksi Hari Ini" value={stats.todayCheckins.toLocaleString('ms-MY')} icon={<FileText size={22} />} tone="green"
           subtitle={stats.totalMurid > 0 ? `${Math.round(stats.todayCheckins / stats.totalMurid * 100)}% daripada murid` : '-'} />
-        <StatCard label="Kes Aktif (Risiko)" value={stats.activeRisk} icon="⚠️" tone="orange" subtitle="Jingga + Merah" />
-        <StatCard label="Log Audit Terkini" value={recentAudit.length} icon="🔐" tone="red" subtitle="5 log terakhir" />
+        <StatCard label="Kes Aktif (Risiko)" value={stats.activeRisk} icon={<AlertTriangle size={22} />} tone="orange" subtitle="Jingga + Merah" />
+        <StatCard label="Log Audit Terkini" value={recentAudit.length} icon={<Shield size={22} />} tone="red" subtitle="5 log terakhir" />
       </div>
 
       {/* Modules */}
       <div className="card mb-8">
         <h2 className="text-xl font-bold text-neutral-900 mb-6">Modul Pentadbiran</h2>
         <div className="grid gap-4 md:grid-cols-3">
-          {modules.map((module) => (
+          {modules.map((module) => {
+            const Icon = module.icon
+            return (
             <button
               key={module.label}
               onClick={() => module.path !== '#' && router.push(module.path)}
               disabled={module.path === '#'}
-              className={`p-5 rounded-xl text-left font-semibold transition-all duration-200 ${
+              className={`rounded-2xl p-5 text-left font-semibold transition-all duration-200 ${
                 module.featured
-                  ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white hover:shadow-strong hover:scale-105 border-2 border-primary-600'
-                  : 'bg-white border-2 border-neutral-200 text-neutral-700 hover:border-primary-300 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                  ? 'border-2 border-cyan-700 bg-cyan-700 text-white shadow-md hover:bg-cyan-800'
+                  : 'border border-slate-200 bg-white text-slate-700 hover:border-cyan-200 hover:bg-cyan-50/50 disabled:cursor-not-allowed disabled:opacity-50'
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className={`text-3xl ${module.featured ? '' : 'opacity-80'}`}>{module.icon}</span>
+                <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${module.featured ? 'bg-white/15' : 'bg-slate-100 text-cyan-700'}`}>
+                  <Icon size={20} />
+                </span>
                 <span className="flex-1">{module.label}</span>
                 {module.path !== '#' && !module.featured && (
                   <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,7 +124,8 @@ export default function PentadbirPage() {
                 )}
               </div>
             </button>
-          ))}
+            )
+          })}
         </div>
       </div>
 

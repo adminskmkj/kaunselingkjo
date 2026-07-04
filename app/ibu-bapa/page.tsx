@@ -120,8 +120,8 @@ export default function IbuBapaPage() {
               key={ch.id}
               onClick={() => setSelectedChildId(ch.id)}
               className={`rounded-2xl border px-4 py-2 text-sm font-bold transition ${selectedChildId === ch.id
-                ? 'border-blue-500 bg-blue-600 text-white shadow-lg shadow-blue-200'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300'}`}
+                ? 'border-cyan-600 bg-cyan-700 text-white shadow-sm'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-cyan-300'}`}
             >
               {ch.full_name} {ch.class_name ? `· ${ch.class_name}` : ''}
             </button>
@@ -131,10 +131,10 @@ export default function IbuBapaPage() {
 
       {/* Profil anak */}
       {selectedChild && (
-        <div className="mb-6 overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-6 text-white shadow-xl">
+        <div className="mb-6 panel border-l-4 border-l-cyan-600 bg-slate-900 text-white">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-3xl font-black text-white shadow">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-600 text-3xl font-bold text-white">
                 {selectedChild.full_name.charAt(0)}
               </div>
               <div>
