@@ -2,8 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, UserPlus } from 'lucide-react'
+
+const SCHOOL_NAME = 'SK Mohd Khir Johari'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -36,7 +39,17 @@ export default function LoginPage() {
               S
             </div>
             <h1 className="text-2xl font-bold text-slate-900">S.T.A.R KJo</h1>
-            <p className="mt-1 text-sm text-slate-500">SMK Kampung Jawa</p>
+            <p className="mt-1 text-sm font-medium text-slate-600">{SCHOOL_NAME}</p>
+          </div>
+
+          <div className="mb-6 grid grid-cols-2 gap-3">
+            <span className="btn-primary flex items-center justify-center gap-2 text-sm py-2.5 pointer-events-none">
+              Login
+            </span>
+            <Link href="/daftar-akaun" className="btn-secondary flex items-center justify-center gap-2 text-sm py-2.5">
+              <UserPlus size={16} />
+              Daftar
+            </Link>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -82,7 +95,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-slate-400">Murid: guna No. KP 12 digit · Staff: e-mel sekolah</p>
+          <p className="mt-6 text-center text-xs leading-relaxed text-slate-500">
+            Murid: No. KP 12 digit · Staff: e-mel sekolah · Ibu bapa: pilih <strong>Daftar</strong>
+          </p>
         </div>
       </div>
     </div>

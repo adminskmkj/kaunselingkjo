@@ -78,4 +78,4 @@ SELECT level, COUNT(*) FROM risk_levels WHERE is_active = true GROUP BY level;
 ## Migration 015 (ibu bapa paut anak dengan IC)
 
 1. SQL Editor → **`supabase/migrations/015_parent_link_child_by_ic.sql`** → Run
-2. Ibu bapa: login → `/ibu-bapa` → masukkan **No. IC murid 12 digit** → **Paut anak** (boleh >1 anak)
+2. Ibu bapa: daftar akaun sendiri di `/daftar-akaun` → login → `/ibu-bapa` → boleh paut lebih daripada seorang anak guna **No. IC murid 12 digit**
