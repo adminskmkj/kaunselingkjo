@@ -132,9 +132,7 @@ export default function PentadbirPage() {
       <div className="card mb-8 border-l-4 border-l-indigo-500 bg-indigo-50/40">
         <h3 className="font-semibold text-neutral-900 mb-2">Portal Ibu Bapa</h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
-          Web <strong>/ibu-bapa</strong> sudah wujud (Reach Out + ringkasan anak). Akaun ibu bapa perlu{' '}
-          <strong>role = parent</strong> dalam Supabase, dan murid mesti ada <code className="text-xs bg-white px-1 rounded">parent_id</code>{' '}
-          yang merujuk profil ibu bapa. Belum ada UI pautan automatik — set melalui SQL / Dashboard buat masa ini.
+          Web <strong>/ibu-bapa</strong> — ibu bapa login (<strong>role = parent</strong>), paut anak sendiri dengan <strong>No. IC 12 digit</strong> (migration 015), boleh lebih daripada seorang anak.
         </p>
       </div>
 

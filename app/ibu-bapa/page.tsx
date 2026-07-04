@@ -27,6 +27,7 @@ import {
   MessageCircle,
   Shield,
   Smartphone,
+  UserPlus,
 } from 'lucide-react'
 import {
   LineChart,
@@ -90,6 +91,99 @@ export default function IbuBapaPage() {
   const [loading, setLoading] = useState(true)
   const [parentReachOut, setParentReachOut] = useState('')
   const [sendingReachOut, setSendingReachOut] = useState(false)
+  const [linkIc, setLinkIc] = useState('')
+  const [linking, setLinking] = useState(false)
+  const [linkMessage, setLinkMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+
+  function normalizeIcInput(raw: string) {
+    return raw.replace(/\D/g, '').slice(0, 12)
+  }
+
+  async function linkChildByIc() {
+    if (profile?.role !== 'parent') {
+      setLinkMessage({ type: 'err', text: 'Hanya akaun ibu bapa boleh tambah anak di sini.' })
+      return
+    }
+    const ic = normalizeIcInput(linkIc)
+    if (ic.length !== 12) {
+      setLinkMessage({ type: 'err', text: 'Masukkan No. IC murid 12 digit.' })
+      return
+    }
+    setLinking(true)
+    setLinkMessage(null)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any).rpc('link_child_to_parent_by_ic', { child_ic: ic })
+      if (error) throw error
+      const result = data as {
+        ok?: boolean
+        error?: string
+        child_id?: string
+        full_name?: string
+        already_linked?: boolean
+      }
+      if (!result?.ok) {
+        setLinkMessage({ type: 'err', text: result?.error || 'Gagal paut anak.' })
+        return
+      }
+      setLinkMessage({
+        type: 'ok',
+        text: result.already_linked
+          ? `${result.full_name} sudah dipautkan.`
+          : `Berjaya paut ${result.full_name}.`,
+      })
+      setLinkIc('')
+      await fetchChildren()
+      if (result.child_id) setSelectedChildId(result.child_id)
+    } catch (e) {
+      console.error(e)
+      setLinkMessage({
+        type: 'err',
+        text: 'Gagal paut. Pastikan migration 015 dah apply di Supabase.',
+      })
+    } finally {
+      setLinking(false)
+    }
+  }
+
+  const addChildPanel = (
+    <div className="rounded-2xl border border-cyan-100 bg-cyan-50/40 p-5">
+      <div className="mb-3 flex items-center gap-2">
+        <UserPlus size={20} className="text-cyan-700" />
+        <h2 className="text-sm font-black text-slate-900">Tambah anak (No. IC)</h2>
+      </div>
+      <p className="mb-3 text-xs text-slate-600">
+        Masukkan No. Kad Pengenalan murid (12 digit). Boleh tambah lebih daripada seorang — pilih anak di bawah untuk lihat dashboard masing-masing.
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <input
+          type="text"
+          inputMode="numeric"
+          value={linkIc}
+          onChange={(e) => setLinkIc(normalizeIcInput(e.target.value))}
+          placeholder="Contoh: 080821011034"
+          className="input font-mono text-sm tracking-wide"
+          maxLength={12}
+          disabled={linking || profile?.role !== 'parent'}
+        />
+        <button
+          type="button"
+          onClick={linkChildByIc}
+          disabled={linking || linkIc.length !== 12 || profile?.role !== 'parent'}
+          className="btn-primary shrink-0 px-6"
+        >
+          {linking ? 'Memproses...' : 'Paut anak'}
+        </button>
+      </div>
+      {linkMessage && (
+        <p
+          className={`mt-2 text-xs font-semibold ${linkMessage.type === 'ok' ? 'text-emerald-700' : 'text-rose-600'}`}
+        >
+          {linkMessage.text}
+        </p>
+      )}
+    </div>
+  )
 
   useEffect(() => {
     if (authLoading) return
@@ -214,12 +308,13 @@ export default function IbuBapaPage() {
   if (children.length === 0) {
     return (
       <PortalShell title="Portal Ibu Bapa">
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-5xl">👪</p>
-          <h2 className="mt-4 text-xl font-black text-slate-900">Belum ada anak dipautkan</h2>
-          <p className="mt-2 max-w-md text-sm text-slate-500">
-            Pentadbir perlu set <strong>parent_id</strong> pada profil murid dan akaun <strong>role = parent</strong>.
-          </p>
+        <div className="mx-auto max-w-lg space-y-6 py-12">
+          <div className="text-center">
+            <p className="text-5xl">👪</p>
+            <h2 className="mt-4 text-xl font-black text-slate-900">Paut anak anda</h2>
+            <p className="mt-2 text-sm text-slate-500">Tiada anak dipautkan lagi. Gunakan No. IC murid di bawah.</p>
+          </div>
+          {addChildPanel}
         </div>
       </PortalShell>
     )
@@ -243,8 +338,11 @@ export default function IbuBapaPage() {
         </div>
       </div>
 
-      {children.length > 1 && (
-        <div className="mb-6 flex flex-wrap gap-2">
+      <div className="mb-6">{addChildPanel}</div>
+
+      <div className="mb-4">
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Pilih anak untuk paparan</p>
+        <div className="mt-2 flex flex-wrap gap-2">
           {children.map((ch) => (
             <button
               key={ch.id}
@@ -257,10 +355,11 @@ export default function IbuBapaPage() {
               }`}
             >
               {ch.full_name}
+              {ch.class_name ? ` · ${ch.class_name}` : ''}
             </button>
           ))}
         </div>
-      )}
+      </div>
 
       {selectedChild && (
         <>

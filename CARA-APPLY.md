@@ -74,3 +74,8 @@ SELECT level, COUNT(*) FROM risk_levels WHERE is_active = true GROUP BY level;
 
 1. SQL Editor → **`supabase/migrations/014_parent_intervention_visibility.sql`** → Run
 2. GBK: semasa **Intervensi**, tick **Kongsi ringkasan dengan ibu bapa** + isi mesej selamat
+
+## Migration 015 (ibu bapa paut anak dengan IC)
+
+1. SQL Editor → **`supabase/migrations/015_parent_link_child_by_ic.sql`** → Run
+2. Ibu bapa: login → `/ibu-bapa` → masukkan **No. IC murid 12 digit** → **Paut anak** (boleh >1 anak)
