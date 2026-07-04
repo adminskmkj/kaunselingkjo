@@ -280,12 +280,14 @@ export function StatCard({
   icon,
   tone = 'blue',
   subtitle,
+  onClick,
 }: {
   label: string
   value: string | number
   icon: React.ReactNode
   tone?: 'blue' | 'green' | 'orange' | 'red' | 'purple'
   subtitle?: string
+  onClick?: () => void
 }) {
   const tones = {
     blue: { chip: 'bg-cyan-50 text-cyan-700 ring-cyan-100', value: 'text-cyan-800', icon: 'bg-cyan-600' },
@@ -296,18 +298,37 @@ export function StatCard({
   }
   const t = tones[tone]
 
-  return (
-    <div className="panel transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
+  const inner = (
+    <>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className={`inline-flex rounded-lg px-2 py-0.5 text-xs font-semibold ring-1 ${t.chip}`}>{label}</p>
           <p className={`mt-3 text-3xl font-bold tracking-tight ${t.value}`}>{value}</p>
           {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
+          {onClick && <p className="mt-2 text-xs font-medium text-cyan-600">Ketik untuk senarai murid</p>}
         </div>
         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-md ${t.icon}`}>
           {icon}
         </div>
       </div>
+    </>
+  )
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="panel w-full text-left transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(15,23,42,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+      >
+        {inner}
+      </button>
+    )
+  }
+
+  return (
+    <div className="panel transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
+      {inner}
     </div>
   )
 }

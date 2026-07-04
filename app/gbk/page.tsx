@@ -38,6 +38,7 @@ export default function GBKDashboardPage() {
   const [students, setStudents] = useState<StudentRisk[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [riskListLevel, setRiskListLevel] = useState<RiskLevel | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState<InterventionForm>({
     student_id: '',
@@ -194,6 +195,17 @@ export default function GBKDashboardPage() {
     merah: students.filter((s) => s.level === 'merah').length,
   }
 
+  const riskLevelTitles: Record<RiskLevel, string> = {
+    hijau: 'Hijau (Stabil)',
+    kuning: 'Kuning (Awas)',
+    jingga: 'Jingga (Risiko)',
+    merah: 'Merah (Kritikal)',
+  }
+
+  const studentsInLevel = (level: RiskLevel) => students.filter((s) => s.level === level)
+
+  const openRiskList = (level: RiskLevel) => setRiskListLevel(level)
+
   const riskBadges: Record<RiskLevel, { bg: string; text: string; border: string }> = {
     hijau: { bg: 'bg-accent-50', text: 'text-accent-700', border: 'border-accent-200' },
     kuning: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
@@ -259,10 +271,38 @@ export default function GBKDashboardPage() {
     <PortalShell title="Dashboard GBK" subtitle="Pemantauan risiko, intervensi awal dan sesi kaunseling">
       {/* Risk Level Stats */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-        <StatCard label="Hijau (Stabil)" value={counts.hijau} icon={<CheckCircle2 size={22} />} tone="green" subtitle="Tiada risiko" />
-        <StatCard label="Kuning (Awas)" value={counts.kuning} icon={<AlertCircle size={22} />} tone="orange" subtitle="Perlu pantau" />
-        <StatCard label="Jingga (Risiko)" value={counts.jingga} icon={<AlertTriangle size={22} />} tone="orange" subtitle="Perlu tindakan" />
-        <StatCard label="Merah (Kritikal)" value={counts.merah} icon={<XCircle size={22} />} tone="red" subtitle="Segera" />
+        <StatCard
+          label="Hijau (Stabil)"
+          value={counts.hijau}
+          icon={<CheckCircle2 size={22} />}
+          tone="green"
+          subtitle="Tiada risiko"
+          onClick={() => openRiskList('hijau')}
+        />
+        <StatCard
+          label="Kuning (Awas)"
+          value={counts.kuning}
+          icon={<AlertCircle size={22} />}
+          tone="orange"
+          subtitle="Perlu pantau"
+          onClick={() => openRiskList('kuning')}
+        />
+        <StatCard
+          label="Jingga (Risiko)"
+          value={counts.jingga}
+          icon={<AlertTriangle size={22} />}
+          tone="orange"
+          subtitle="Perlu tindakan"
+          onClick={() => openRiskList('jingga')}
+        />
+        <StatCard
+          label="Merah (Kritikal)"
+          value={counts.merah}
+          icon={<XCircle size={22} />}
+          tone="red"
+          subtitle="Segera"
+          onClick={() => openRiskList('merah')}
+        />
       </div>
 
       {/* Students Table */}
@@ -329,6 +369,57 @@ export default function GBKDashboardPage() {
           </div>
         )}
       </section>
+
+      {riskListLevel && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setRiskListLevel(null)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="border-b border-neutral-100 px-6 py-4">
+              <h2 className="text-xl font-bold text-neutral-900">{riskLevelTitles[riskListLevel]}</h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                {studentsInLevel(riskListLevel).length} murid dalam kategori ini
+              </p>
+            </div>
+            <ul className="max-h-[60vh] overflow-y-auto divide-y divide-neutral-100">
+              {studentsInLevel(riskListLevel).length === 0 ? (
+                <li className="px-6 py-10 text-center text-sm text-neutral-500">Tiada murid dalam kategori ini.</li>
+              ) : (
+                studentsInLevel(riskListLevel).map((s) => (
+                  <li key={s.student_id} className="flex items-center justify-between gap-3 px-6 py-4 hover:bg-neutral-50">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-neutral-900">{s.full_name}</p>
+                      <p className="text-sm text-neutral-500">{s.class_name || 'Kelas tidak ditetapkan'}</p>
+                      <p className="mt-1 text-xs text-neutral-400">
+                        Skor emosi (7h): {s.avg_score}% · refleksi terakhir: {s.last_checkin}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRiskListLevel(null)
+                        openInterventionModal(s)
+                      }}
+                      className="btn-primary shrink-0 text-xs py-2 px-3"
+                    >
+                      Intervensi
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+            <div className="border-t border-neutral-100 px-6 py-4">
+              <button type="button" onClick={() => setRiskListLevel(null)} className="btn-secondary w-full">
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Intervention Modal */}
       {showModal && (
