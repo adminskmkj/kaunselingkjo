@@ -1,39 +1,79 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PortalShell } from '@/components/portal-shell'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
-import { BarChart2, Flame, Trophy, TrendingUp, BookOpen, Heart } from 'lucide-react'
+import {
+  avgDisciplineByMonth,
+  attendancePctFromCheckins,
+  behaviorPie,
+  demeritCount,
+  formatLastUpdate,
+  labelBaik,
+  refleksiCalendarDays,
+  starsFromPct,
+} from '@/lib/parent-dashboard'
+import {
+  BarChart2,
+  Bell,
+  Calendar,
+  Heart,
+  Star,
+  Trophy,
+  User,
+  BookOpen,
+  MessageCircle,
+  Shield,
+  Smartphone,
+} from 'lucide-react'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts'
+import { format } from 'date-fns'
+import { ms } from 'date-fns/locale'
 
-type ChildRow = { id: string; full_name: string; class_name: string | null }
-type CheckinRow = { id: string; checkin_date: string; discipline_score: number | null; emotional_score: number | null; q7_perasaan_emosi: string | null; q9_tahap_stres: number | null }
-type PointsRow = { total_points: number; current_streak: number }
-type BadgeRow = { id: string; badge_name: string; icon: string | null }
-
-function ScoreRing({ pct }: { pct: number }) {
-  const r = 38; const c = 2 * Math.PI * r
-  const dash = (pct / 100) * c
-  const color = pct >= 80 ? '#10b981' : pct >= 60 ? '#3b82f6' : pct >= 40 ? '#f59e0b' : '#ef4444'
-  const label = pct >= 80 ? 'Cemerlang' : pct >= 60 ? 'Baik' : pct >= 40 ? 'Sederhana' : 'Perlu Bimbingan'
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <svg width="92" height="92" viewBox="0 0 92 92">
-        <circle cx="46" cy="46" r={r} fill="none" stroke="#e2e8f0" strokeWidth="10" />
-        <circle cx="46" cy="46" r={r} fill="none" stroke={color} strokeWidth="10"
-          strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
-          transform="rotate(-90 46 46)" />
-        <text x="46" y="50" textAnchor="middle" fontSize="16" fontWeight="800" fill={color}>{pct}%</text>
-      </svg>
-      <span className="text-xs font-bold" style={{ color }}>{label}</span>
-    </div>
-  )
+type ChildRow = { id: string; full_name: string; class_name: string | null; ic_number: string | null }
+type CheckinRow = {
+  id: string
+  checkin_date: string
+  discipline_score: number | null
+  emotional_score: number | null
+  q1_kehadiran_ketepatan: number | null
+  q7_perasaan_emosi: string | null
+  q9_tahap_stres: number | null
 }
+type BehaviorRow = { record_type: string; points: number | null; record_date: string; description: string | null }
+type CounselRow = { id: string; session_date: string; status: string; purpose: string | null }
+type ParentNoteRow = {
+  id: string
+  session_date: string
+  parent_note: string | null
+}
+type BadgeRow = { id: string; badge_name: string; icon: string | null }
+type PointsRow = { total_points: number; current_streak: number }
 
-const emojiMap: Record<string, string> = {
-  'Gembira': '😄', 'Sedih': '😢', 'Marah': '😠', 'Cemas': '😰',
-  'Tenang': '😌', 'Bosan': '😑', 'Teruja': '🤩', 'Penat': '😫',
+const PIE_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b']
+
+function Stars({ n }: { n: number }) {
+  return (
+    <span className="inline-flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star key={i} size={14} className={i <= n ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} />
+      ))}
+    </span>
+  )
 }
 
 export default function IbuBapaPage() {
@@ -42,6 +82,9 @@ export default function IbuBapaPage() {
   const [children, setChildren] = useState<ChildRow[]>([])
   const [selectedChildId, setSelectedChildId] = useState('')
   const [checkins, setCheckins] = useState<CheckinRow[]>([])
+  const [behavior, setBehavior] = useState<BehaviorRow[]>([])
+  const [sessions, setSessions] = useState<CounselRow[]>([])
+  const [parentNotes, setParentNotes] = useState<ParentNoteRow[]>([])
   const [points, setPoints] = useState<PointsRow | null>(null)
   const [badges, setBadges] = useState<BadgeRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,8 +93,14 @@ export default function IbuBapaPage() {
 
   useEffect(() => {
     if (authLoading) return
-    if (!profile) { router.push('/login'); return }
-    if (profile.role !== 'parent' && profile.role !== 'admin') { router.push('/dashboard'); return }
+    if (!profile) {
+      router.push('/login')
+      return
+    }
+    if (profile.role !== 'parent' && profile.role !== 'admin') {
+      router.push('/dashboard')
+      return
+    }
     fetchChildren()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, profile])
@@ -59,8 +108,10 @@ export default function IbuBapaPage() {
   async function fetchChildren() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data } = await (supabase as any)
-      .from('profiles').select('id, full_name, class_name')
-      .eq('parent_id', profile!.id).order('full_name')
+      .from('profiles')
+      .select('id, full_name, class_name, ic_number')
+      .eq('parent_id', profile!.id)
+      .order('full_name')
     const rows = (data || []) as ChildRow[]
     setChildren(rows)
     if (rows.length > 0) setSelectedChildId(rows[0].id)
@@ -68,277 +119,404 @@ export default function IbuBapaPage() {
   }
 
   useEffect(() => {
-    if (!selectedChildId) { setCheckins([]); setPoints(null); setBadges([]); return }
+    if (!selectedChildId) {
+      setCheckins([])
+      setBehavior([])
+      setSessions([])
+      setParentNotes([])
+      setPoints(null)
+      setBadges([])
+      return
+    }
     fetchChildData(selectedChildId)
   }, [selectedChildId])
 
   async function fetchChildData(id: string) {
-    const [ciRes, ptRes, bdRes] = await Promise.all([
+    const since = new Date()
+    since.setDate(since.getDate() - 150)
+    const sinceStr = since.toISOString().split('T')[0]
+    const behSince = new Date()
+    behSince.setDate(behSince.getDate() - 35)
+    const behStr = behSince.toISOString().split('T')[0]
+
+    const [ciRes, behRes, sessRes, noteRes, ptRes, bdRes] = await Promise.all([
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase as any).from('checkins').select('id,checkin_date,discipline_score,emotional_score,q7_perasaan_emosi,q9_tahap_stres').eq('student_id', id).order('checkin_date', { ascending: false }).limit(10),
+      (supabase as any)
+        .from('checkins')
+        .select(
+          'id,checkin_date,discipline_score,emotional_score,q1_kehadiran_ketepatan,q7_perasaan_emosi,q9_tahap_stres'
+        )
+        .eq('student_id', id)
+        .gte('checkin_date', sinceStr)
+        .order('checkin_date', { ascending: false }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any)
+        .from('behavior_records')
+        .select('record_type,points,record_date,description')
+        .eq('student_id', id)
+        .gte('record_date', behStr),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any)
+        .from('counseling_sessions')
+        .select('id,session_date,status,purpose')
+        .eq('student_id', id)
+        .order('session_date', { ascending: false })
+        .limit(20),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any)
+        .from('intervention_records')
+        .select('id,session_date,parent_note')
+        .eq('student_id', id)
+        .eq('share_with_parent', true)
+        .order('session_date', { ascending: false })
+        .limit(5),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (supabase as any).from('points_tracker').select('total_points,current_streak').eq('student_id', id).maybeSingle(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase as any).from('student_badges').select('id,badge_name,icon').eq('student_id', id).limit(6),
+      (supabase as any).from('student_badges').select('id,badge_name,icon').eq('student_id', id).limit(8),
     ])
+
     setCheckins((ciRes.data || []) as CheckinRow[])
+    setBehavior((behRes.data || []) as BehaviorRow[])
+    setSessions((sessRes.data || []) as CounselRow[])
+    setParentNotes((noteRes.data || []) as ParentNoteRow[])
     setPoints(ptRes.data as PointsRow | null)
     setBadges((bdRes.data || []) as BadgeRow[])
   }
 
   const selectedChild = children.find((c) => c.id === selectedChildId)
-  const latestDisc = checkins[0]?.discipline_score ?? 0
-  const latestEmo = checkins[0]?.emotional_score ?? 0
-  const recentCheckins = [...checkins].slice(0, 7).reverse()
+  const latestDisc = Math.round(checkins[0]?.discipline_score ?? 0)
+  const latestEmo = Math.round(checkins[0]?.emotional_score ?? 0)
+  const attendancePct = attendancePctFromCheckins(checkins.slice(0, 30))
+  const demerits = demeritCount(behavior)
+  const sessionDone = sessions.filter((s) => s.status === 'selesai').length
 
-  if (authLoading || loading) return (
-    <PortalShell title="Portal Ibu Bapa">
-      <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-      </div>
-    </PortalShell>
+  const monthTrend = useMemo(() => avgDisciplineByMonth(checkins, 5), [checkins])
+  const pieData = useMemo(() => behaviorPie(behavior), [behavior])
+  const checkinDateSet = useMemo(() => new Set(checkins.map((c) => c.checkin_date)), [checkins])
+  const calDays = useMemo(
+    () => refleksiCalendarDays(new Date(), checkinDateSet),
+    [checkinDateSet]
   )
 
-  if (children.length === 0) return (
-    <PortalShell title="Portal Ibu Bapa">
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <p className="text-5xl">👪</p>
-        <h2 className="mt-4 text-xl font-black text-slate-900">Belum ada anak dipautkan</h2>
-        <p className="mt-2 text-sm text-slate-500">Hubungi pentadbir untuk pautkan akaun ibu bapa kepada profil murid.</p>
-      </div>
-    </PortalShell>
-  )
+  const parentFirst = profile?.full_name?.split(' ')[0] || 'Ibu/Bapa'
+
+  if (authLoading || loading) {
+    return (
+      <PortalShell title="Portal Ibu Bapa">
+        <div className="flex items-center justify-center py-24">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+        </div>
+      </PortalShell>
+    )
+  }
+
+  if (children.length === 0) {
+    return (
+      <PortalShell title="Portal Ibu Bapa">
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <p className="text-5xl">👪</p>
+          <h2 className="mt-4 text-xl font-black text-slate-900">Belum ada anak dipautkan</h2>
+          <p className="mt-2 max-w-md text-sm text-slate-500">
+            Pentadbir perlu set <strong>parent_id</strong> pada profil murid dan akaun <strong>role = parent</strong>.
+          </p>
+        </div>
+      </PortalShell>
+    )
+  }
 
   return (
-    <PortalShell title="Portal Ibu Bapa" subtitle="Paparan ringkas perkembangan anak. Nota dalaman tidak dipaparkan.">
+    <PortalShell title="Portal Ibu Bapa" subtitle="Pantau perkembangan anak — data daripada refleksi & rekod sekolah">
+      {/* Header mockup-style */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-white px-5 py-4 shadow-sm">
+        <div>
+          <p className="text-lg font-bold text-slate-900">
+            Selamat datang, {parentFirst} 👋
+          </p>
+          <p className="text-xs text-slate-500">
+            Kemaskini terakhir: {formatLastUpdate(checkins[0]?.checkin_date)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-slate-600">
+          <Bell size={18} />
+          <span className="text-xs font-semibold">Notifikasi sekolah (akan datang)</span>
+        </div>
+      </div>
 
-      {/* Pilih anak */}
       {children.length > 1 && (
-        <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="mb-6 flex flex-wrap gap-2">
           {children.map((ch) => (
             <button
               key={ch.id}
+              type="button"
               onClick={() => setSelectedChildId(ch.id)}
-              className={`rounded-2xl border px-4 py-2 text-sm font-bold transition ${selectedChildId === ch.id
-                ? 'border-cyan-600 bg-cyan-700 text-white shadow-sm'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-cyan-300'}`}
+              className={`rounded-2xl border px-4 py-2 text-sm font-bold transition ${
+                selectedChildId === ch.id
+                  ? 'border-cyan-600 bg-cyan-700 text-white'
+                  : 'border-slate-200 bg-white text-slate-700'
+              }`}
             >
-              {ch.full_name} {ch.class_name ? `· ${ch.class_name}` : ''}
+              {ch.full_name}
             </button>
           ))}
         </div>
       )}
 
-      {/* Profil anak */}
       {selectedChild && (
-        <div className="mb-6 panel border-l-4 border-l-cyan-600 bg-slate-900 text-white">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <>
+          {/* Profil murid */}
+          <div className="mb-6 panel flex flex-col gap-4 border-l-4 border-l-indigo-500 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-600 text-3xl font-bold text-white">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 text-2xl font-bold text-white">
                 {selectedChild.full_name.charAt(0)}
               </div>
               <div>
-                <p className="text-xl font-black">{selectedChild.full_name}</p>
-                <p className="text-sm opacity-80">{selectedChild.class_name || 'Kelas belum ditetapkan'}</p>
-                <p className="mt-1 text-xs opacity-60">Perkembangan semasa</p>
+                <p className="text-lg font-black uppercase tracking-tight text-slate-900">{selectedChild.full_name}</p>
+                <p className="text-sm text-slate-600">{selectedChild.class_name || 'Kelas belum ditetapkan'}</p>
+                {selectedChild.ic_number && (
+                  <p className="mt-1 text-xs text-slate-500">No. IC Murid: {selectedChild.ic_number}</p>
+                )}
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-6">
-              <div className="text-center">
-                <ScoreRing pct={Math.round(latestDisc)} />
-                <p className="mt-2 text-xs font-bold opacity-90">Disiplin</p>
+            <div className="flex gap-6 text-center">
+              <div>
+                <p className="text-2xl font-black text-indigo-600">{latestDisc || '—'}%</p>
+                <p className="text-xs font-semibold text-slate-500">Disiplin</p>
+                {latestDisc > 0 && <Stars n={starsFromPct(latestDisc)} />}
               </div>
-              <div className="text-center">
-                <ScoreRing pct={Math.round(latestEmo)} />
-                <p className="mt-2 text-xs font-bold opacity-90">Emosi</p>
+              <div>
+                <p className="text-2xl font-black text-violet-600">{latestEmo || '—'}%</p>
+                <p className="text-xs font-semibold text-slate-500">Emosi</p>
               </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* KPI */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
-        {[
-          { icon: <BarChart2 size={20} />, label: 'Skor Disiplin', value: latestDisc ? `${Math.round(latestDisc)}%` : '--', sub: 'Refleksi terakhir', bg: 'from-blue-500 to-indigo-600' },
-          { icon: <Heart size={20} />, label: 'Skor Emosi', value: latestEmo ? `${Math.round(latestEmo)}%` : '--', sub: 'Refleksi terakhir', bg: 'from-violet-500 to-purple-600' },
-          { icon: <Flame size={20} />, label: 'Streak', value: `${points?.current_streak ?? 0} hari`, sub: 'Streak semasa', bg: 'from-orange-400 to-rose-500' },
-          { icon: <TrendingUp size={20} />, label: 'Jumlah Mata', value: points?.total_points ?? 0, sub: 'Dikumpul setakat ini', bg: 'from-emerald-500 to-teal-600' },
-          { icon: <Trophy size={20} />, label: 'Lencana', value: badges.length, sub: 'Pencapaian diperoleh', bg: 'from-amber-400 to-orange-500' },
-        ].map((k) => (
-          <div key={k.label} className="overflow-hidden rounded-2xl bg-white p-5 shadow-lg shadow-slate-200/60 transition hover:shadow-xl hover:-translate-y-0.5">
-            <div className={`mb-3 inline-flex items-center justify-center rounded-xl bg-gradient-to-br ${k.bg} p-2.5 text-white shadow`}>
-              {k.icon}
-            </div>
-            <p className="text-2xl font-black text-slate-900">{k.value}</p>
-            <p className="text-sm font-semibold text-slate-600">{k.label}</p>
-            <p className="mt-0.5 text-xs text-slate-400">{k.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-
-          {/* Trend skor */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60 space-y-6">
-            <div>
-              <h2 className="mb-3 text-base font-black text-slate-900">Trend Skor Disiplin (7 Hari)</h2>
-              {recentCheckins.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-400">Belum ada rekod.</p>
-              ) : (
-                <div className="flex items-end gap-2 h-24">
-                  {recentCheckins.map((h, i) => {
-                    const pct = Math.round(h.discipline_score ?? 0)
-                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
-                    return (
-                      <div key={`d-${i}`} className="flex flex-1 flex-col items-center gap-1">
-                        <span className="text-[10px] font-bold text-slate-600">{pct}%</span>
-                        <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
-                        <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-            <div>
-              <h2 className="mb-3 text-base font-black text-slate-900">Trend Skor Emosi (7 Hari)</h2>
-              {recentCheckins.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-400">Belum ada rekod.</p>
-              ) : (
-                <div className="flex items-end gap-2 h-24">
-                  {recentCheckins.map((h, i) => {
-                    const pct = Math.round(h.emotional_score ?? 0)
-                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-violet-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
-                    return (
-                      <div key={`e-${i}`} className="flex flex-1 flex-col items-center gap-1">
-                        <span className="text-[10px] font-bold text-slate-600">{pct}%</span>
-                        <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
-                        <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Sejarah refleksi */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-white shadow-xl shadow-slate-200/60">
-            <div className="border-b border-slate-100 px-6 py-4">
-              <h2 className="text-lg font-black text-slate-900">Sejarah Refleksi {selectedChild?.full_name}</h2>
-            </div>
-            {checkins.length === 0 ? (
-              <p className="p-8 text-center text-sm text-slate-400">Belum ada refleksi direkodkan.</p>
-            ) : (
-              <div className="divide-y divide-slate-50">
-                {checkins.slice(0, 8).map((c) => {
-                  const disc = Math.round(c.discipline_score ?? 0)
-                  const emo = Math.round(c.emotional_score ?? 0)
-                  const color = emo >= 80 ? 'text-emerald-600 bg-emerald-50' : emo >= 60 ? 'text-blue-600 bg-blue-50' : emo >= 40 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50'
-                  return (
-                    <div key={c.id} className="flex items-center gap-4 px-6 py-3 hover:bg-slate-50/60 transition">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-xl">
-                        {emojiMap[c.q7_perasaan_emosi ?? ''] ?? '😐'}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-900">{c.checkin_date}</p>
-                        <p className="text-xs text-slate-500">
-                          Emosi: {c.q7_perasaan_emosi || '—'} · Stres: {c.q9_tahap_stres ?? '—'}/10
-                        </p>
-                      </div>
-                      <span className={`rounded-full px-3 py-1 text-xs font-black ${color}`}>D {disc}% · E {emo}%</span>
-                    </div>
-                  )
-                })}
+          {/* KPI 4 kad */}
+          <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {[
+              {
+                label: 'Skor Disiplin',
+                value: latestDisc ? `${latestDisc}%` : '—',
+                badge: latestDisc ? labelBaik(latestDisc) : '—',
+                icon: <BarChart2 className="text-white" size={20} />,
+                grad: 'from-blue-500 to-indigo-600',
+              },
+              {
+                label: 'Ketepatan (Refleksi)',
+                value: attendancePct != null ? `${attendancePct}%` : '—',
+                badge: attendancePct != null ? labelBaik(attendancePct) : 'Tiada data',
+                icon: <Calendar className="text-white" size={20} />,
+                grad: 'from-emerald-500 to-teal-600',
+              },
+              {
+                label: 'Rekod Demerit / Kes',
+                value: String(demerits),
+                badge: demerits <= 2 ? 'BAIK' : 'PERHATIAN',
+                icon: <Shield className="text-white" size={20} />,
+                grad: 'from-amber-500 to-orange-600',
+              },
+              {
+                label: 'Sesi Kaunseling',
+                value: String(sessionDone),
+                badge: 'SELESAI',
+                icon: <User className="text-white" size={20} />,
+                grad: 'from-violet-500 to-purple-600',
+              },
+            ].map((k) => (
+              <div key={k.label} className="rounded-2xl bg-white p-5 shadow-lg shadow-slate-200/50">
+                <div className={`mb-3 inline-flex rounded-xl bg-gradient-to-br ${k.grad} p-2.5 shadow`}>{k.icon}</div>
+                <p className="text-2xl font-black text-slate-900">{k.value}</p>
+                <p className="text-sm font-semibold text-slate-700">{k.label}</p>
+                <span className="mt-2 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                  {k.badge}
+                </span>
               </div>
-            )}
+            ))}
           </div>
-        </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Lencana */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-white p-5 shadow-xl shadow-slate-200/60">
-            <div className="mb-4 flex items-center gap-2">
-              <Trophy size={18} className="text-amber-500" />
-              <h2 className="text-base font-black text-slate-900">Pencapaian & Lencana</h2>
-            </div>
-            {badges.length === 0 ? (
-              <p className="py-4 text-center text-sm text-slate-400">Belum ada lencana diperoleh.</p>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {badges.map((b) => (
-                  <div key={b.id} className="flex flex-col items-center gap-1.5 rounded-xl bg-amber-50 p-2.5 text-center">
-                    <span className="text-xl">{b.icon ?? '🏅'}</span>
-                    <span className="text-[10px] font-bold leading-tight text-slate-700">{b.badge_name}</span>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
+              {/* Trend line */}
+              <div className="rounded-2xl bg-white p-6 shadow-lg">
+                <h2 className="mb-4 text-base font-black text-slate-900">Trend Skor Disiplin (5 Bulan)</h2>
+                {monthTrend.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-slate-400">Belum cukup data refleksi.</p>
+                ) : (
+                  <div className="h-56 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={monthTrend}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                        <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="skor" stroke="#4f46e5" strokeWidth={2} dot={{ r: 4 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Nota ibu bapa */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-indigo-50 to-blue-50 p-5 shadow-lg shadow-slate-200/40">
-            <div className="mb-3 flex items-center gap-2">
-              <Heart size={16} className="text-rose-500" />
-              <h2 className="text-sm font-black text-slate-800">Nota untuk Ibu Bapa</h2>
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Pie tingkah laku */}
+                <div className="rounded-2xl bg-white p-5 shadow-lg">
+                  <h2 className="mb-2 text-sm font-black text-slate-900">Taburan Rekod (30 Hari)</h2>
+                  {pieData.length === 0 ? (
+                    <p className="py-10 text-center text-xs text-slate-400">Tiada rekod tingkah laku.</p>
+                  ) : (
+                    <div className="h-52">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
+                            {pieData.map((_, i) => (
+                              <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Legend wrapperStyle={{ fontSize: 10 }} />
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+
+                {/* Kalendar refleksi */}
+                <div className="rounded-2xl bg-white p-5 shadow-lg">
+                  <h2 className="mb-3 text-sm font-black text-slate-900">
+                    Refleksi Harian — {format(new Date(), 'MMMM yyyy', { locale: ms })}
+                  </h2>
+                  <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400">
+                    {['Is', 'Se', 'Ra', 'Kh', 'Ju', 'Sa', 'Ah'].map((d) => (
+                      <span key={d}>{d}</span>
+                    ))}
+                  </div>
+                  <div className="mt-1 grid grid-cols-7 gap-1">
+                    {calDays.map((d) => (
+                      <div
+                        key={d.date.toISOString()}
+                        className={`aspect-square rounded-lg text-[10px] font-semibold flex items-center justify-center ${
+                          d.hasRefleksi
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-slate-50 text-slate-400'
+                        } ${d.isToday ? 'ring-2 ring-indigo-500' : ''}`}
+                        title={d.hasRefleksi ? 'Refleksi diisi' : 'Tiada refleksi'}
+                      >
+                        {format(d.date, 'd')}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[10px] text-slate-500">Hijau = hari refleksi diisi (bukan kehadiran fizikal rasmi).</p>
+                </div>
+              </div>
             </div>
-            <p className="text-xs leading-relaxed text-slate-600">
-              Portal ini menunjukkan perkembangan umum anak anda. Rekod sulit dan nota dalaman guru/GBK tidak dipaparkan demi menjaga privasi murid.
-            </p>
-            <div className="mt-4 space-y-2">
-              <label className="text-xs font-bold text-slate-700">Reach Out kepada GBK (untuk anak dipilih)</label>
-              <textarea
-                value={parentReachOut}
-                onChange={(e) => setParentReachOut(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 p-2 text-xs"
-                rows={3}
-                placeholder="Contoh: Saya perhatikan anak saya kelihatan sedih..."
-                disabled={!selectedChildId}
-              />
-              <button
-                type="button"
-                disabled={!selectedChildId || !parentReachOut.trim() || sendingReachOut}
-                onClick={async () => {
-                  if (!profile || !selectedChildId) return
-                  setSendingReachOut(true)
-                  try {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const { error } = await (supabase as any).from('reach_out_messages').insert({
-                      student_id: selectedChildId,
-                      sender_id: profile.id,
-                      message: parentReachOut.trim(),
-                      source: 'ibu_bapa',
-                      status: 'baru',
-                    })
-                    if (error) throw error
-                    setParentReachOut('')
-                    alert('Mesej dihantar kepada GBK.')
-                  } catch (e) {
-                    console.error(e)
-                    alert('Gagal hantar. Pastikan migration 012 Reach Out dah apply.')
-                  } finally {
-                    setSendingReachOut(false)
-                  }
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-600 py-2.5 text-xs font-black text-white shadow-lg shadow-rose-200 transition hover:bg-rose-700 disabled:opacity-50"
-              >
-                <Heart size={14} />
-                {sendingReachOut ? 'Menghantar...' : 'Hantar Reach Out'}
-              </button>
+
+            <div className="space-y-6">
+              {/* Pencapaian */}
+              <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-5 shadow-md">
+                <div className="mb-3 flex items-center gap-2">
+                  <Trophy className="text-amber-600" size={20} />
+                  <h2 className="font-black text-slate-900">Pencapaian & Penghargaan</h2>
+                </div>
+                {badges.length === 0 ? (
+                  <p className="text-sm text-slate-600">Teruskan usaha — lencana akan muncul bila anak capai sasaran.</p>
+                ) : (
+                  <>
+                    <p className="mb-3 text-sm font-semibold text-amber-900">
+                      Tahniah! {selectedChild.full_name.split(' ')[0]} 🎉
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {badges.map((b) => (
+                        <div key={b.id} className="rounded-xl bg-white/80 p-2 text-center shadow-sm">
+                          <span className="text-xl">{b.icon ?? '🏅'}</span>
+                          <p className="mt-1 text-[9px] font-bold leading-tight text-slate-700">{b.badge_name}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <p className="mt-3 text-xs text-slate-500">Streak: {points?.current_streak ?? 0} hari · Mata: {points?.total_points ?? 0}</p>
+              </div>
+
+              {/* Catatan GBK */}
+              <div className="rounded-2xl border border-violet-100 bg-white p-5 shadow-lg">
+                <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-900">
+                  <MessageCircle size={18} className="text-violet-600" />
+                  Catatan Guru Kaunseling
+                </h2>
+                {parentNotes.length === 0 ? (
+                  <p className="text-xs leading-relaxed text-slate-500">
+                    Tiada catatan dikongsi lagi. GBK boleh kongsi ringkasan selamat melalui rekod intervensi (migration 014).
+                  </p>
+                ) : (
+                  <ul className="space-y-3">
+                    {parentNotes.map((n) => (
+                      <li key={n.id} className="rounded-xl bg-violet-50/80 p-3 text-xs text-slate-700">
+                        <p className="leading-relaxed">{n.parent_note || '—'}</p>
+                        <p className="mt-2 font-semibold text-violet-800">GBK · {n.session_date}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Sumber */}
+              <div className="rounded-2xl bg-slate-50 p-5">
+                <h2 className="mb-3 text-sm font-black text-slate-900">Sumber Untuk Ibu Bapa</h2>
+                <ul className="space-y-2 text-xs font-semibold text-indigo-700">
+                  <li className="flex items-center gap-2">
+                    <BookOpen size={14} /> Panduan komunikasi di rumah
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Heart size={14} /> Tips bimbingan remaja
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Smartphone size={14} /> Mengurus masa skrin anak
+                  </li>
+                </ul>
+              </div>
+
+              {/* Reach Out */}
+              <div className="rounded-2xl bg-rose-50 p-5">
+                <label className="text-xs font-bold text-slate-800">Reach Out kepada GBK</label>
+                <textarea
+                  value={parentReachOut}
+                  onChange={(e) => setParentReachOut(e.target.value)}
+                  className="input mt-2 min-h-[88px] text-xs"
+                  placeholder="Kongsi kebimbangan anda..."
+                />
+                <button
+                  type="button"
+                  disabled={!parentReachOut.trim() || sendingReachOut}
+                  onClick={async () => {
+                    if (!profile || !selectedChildId) return
+                    setSendingReachOut(true)
+                    try {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      const { error } = await (supabase as any).from('reach_out_messages').insert({
+                        student_id: selectedChildId,
+                        sender_id: profile.id,
+                        message: parentReachOut.trim(),
+                        source: 'ibu_bapa',
+                        status: 'baru',
+                      })
+                      if (error) throw error
+                      setParentReachOut('')
+                      alert('Mesej dihantar kepada GBK.')
+                    } catch (e) {
+                      console.error(e)
+                      alert('Gagal hantar.')
+                    } finally {
+                      setSendingReachOut(false)
+                    }
+                  }}
+                  className="btn-primary mt-3 w-full text-xs"
+                >
+                  {sendingReachOut ? 'Menghantar...' : 'Hantar Reach Out'}
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => router.push('/murid/sesi')}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-2.5 text-xs font-black text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"
-            >
-              <BookOpen size={14} />
-              Lihat Sesi Kaunseling
-            </button>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </PortalShell>
   )
 }

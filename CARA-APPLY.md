@@ -69,3 +69,8 @@ SELECT level, COUNT(*) FROM risk_levels WHERE is_active = true GROUP BY level;
 
 1. SQL Editor → **`supabase/migrations/013_reach_out_unread_badges.sql`** → Run
 2. GBK: badge merah = mesej status **Baru**; murid: badge = balasan GBK belum dibaca
+
+## Migration 014 (catatan GBK untuk ibu bapa)
+
+1. SQL Editor → **`supabase/migrations/014_parent_intervention_visibility.sql`** → Run
+2. GBK: semasa **Intervensi**, tick **Kongsi ringkasan dengan ibu bapa** + isi mesej selamat

@@ -30,6 +30,8 @@ type InterventionForm = {
   summary: string
   follow_up_action: string
   referral_to: string
+  share_with_parent: boolean
+  parent_note: string
 }
 
 export default function GBKDashboardPage() {
@@ -49,6 +51,8 @@ export default function GBKDashboardPage() {
     summary: '',
     follow_up_action: '',
     referral_to: '',
+    share_with_parent: false,
+    parent_note: '',
   })
 
   useEffect(() => {
@@ -223,6 +227,8 @@ export default function GBKDashboardPage() {
       summary: '',
       follow_up_action: '',
       referral_to: '',
+      share_with_parent: false,
+      parent_note: '',
     })
     setShowModal(true)
   }
@@ -243,6 +249,8 @@ export default function GBKDashboardPage() {
         follow_up_action: form.follow_up_action,
         referral_to: form.referral_to || null,
         case_status: 'baru',
+        share_with_parent: form.share_with_parent,
+        parent_note: form.share_with_parent ? form.parent_note.trim() || null : null,
       })
 
       if (error) throw error
@@ -499,6 +507,26 @@ export default function GBKDashboardPage() {
               className="input"
               placeholder="Contoh: Ibu bapa, pakar psikologi"
             />
+          </div>
+
+          <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-4 space-y-3">
+            <label className="flex items-center gap-2 text-sm font-semibold text-violet-900">
+              <input
+                type="checkbox"
+                checked={form.share_with_parent}
+                onChange={(e) => setForm({ ...form, share_with_parent: e.target.checked })}
+                className="h-4 w-4 rounded border-violet-300"
+              />
+              Kongsi ringkasan dengan ibu bapa (portal /ibu-bapa)
+            </label>
+            {form.share_with_parent && (
+              <textarea
+                value={form.parent_note}
+                onChange={(e) => setForm({ ...form, parent_note: e.target.value })}
+                className="input min-h-[80px] text-sm"
+                placeholder="Mesej selamat untuk ibu bapa — jangan masukkan nota sulit dalaman."
+              />
+            )}
           </div>
         </form>
       </ModalOverlay>
