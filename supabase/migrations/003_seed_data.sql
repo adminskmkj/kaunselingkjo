@@ -5,7 +5,6 @@
 INSERT INTO badges (id, name, description, icon_url, criteria) VALUES
     ('00000000-0000-0000-0000-000000000001', 'First S.T.A.R', 'Lengkapkan refleksi pertama', '🌟', 'Lengkapkan 1 checkin'),
     ('00000000-0000-0000-0000-000000000003', 'Refleksi S.T.A.R', 'Refleksi 30 hari berturut-turut', '💎', 'Streak 30 hari'),
-    ('00000000-0000-0000-0000-000000000004', 'Mingguan S.T.A.R', 'Skor purata >= 90% selama seminggu', '⭐', 'Weekly avg >= 90%'),
     ('00000000-0000-0000-0000-000000000005', 'Shining S.T.A.R of the Month', 'Skor purata >= 90% selama sebulan', '🏆', 'Monthly avg >= 90%'),
     ('00000000-0000-0000-0000-000000000006', 'Level Up S.T.A.R', 'Tingkatkan skor 20% dalam 2 minggu', '📈', 'Score increase 20%'),
     ('00000000-0000-0000-0000-000000000007', 'Buddy S.T.A.R', 'Skor hubungan rakan cemerlang selama sebulan', '🤝', 'Q8 = 3 for 30 days'),
