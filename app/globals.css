@@ -139,6 +139,64 @@
     background-image: radial-gradient(circle, rgba(239, 146, 32, 0.05) 1px, transparent 1px);
     background-size: 20px 20px;
   }
+
+  /* Card 3D tilt */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out;
+  }
+
+  /* Stagger entrance */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.5s ease-out backwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease-out;
+  }
+
+  /* Logo float */
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(1deg); }
+  }
+
+  .animate-logo-float {
+    animation: logoFloat 4s ease-in-out infinite;
+  }
+
+  /* Shine sweep on hover */
+  .shine-sweep {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shine-sweep::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -100%;
+    width: 60%;
+    height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.6s ease;
+    pointer-events: none;
+  }
+
+  .shine-sweep:hover::after {
+    left: 120%;
+  }
 }
 
 @layer utilities {

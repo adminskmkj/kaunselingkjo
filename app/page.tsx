@@ -2,10 +2,21 @@
 
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useRef, useEffect, useState } from 'react'
 import { GraduationCap, Compass, Backpack, Home as HomeIcon, ArrowRight, Sparkles } from 'lucide-react'
 
 export default function Home() {
   const router = useRouter()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+
+  useEffect(() => {
+    const handleMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY })
+    }
+    window.addEventListener('mousemove', handleMove)
+    return () => window.removeEventListener('mousemove', handleMove)
+  }, [])
 
   const roles = [
     { icon: GraduationCap, title: 'Murid', desc: 'Rekod Perkembangan Murid', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'hover:border-emerald-200', enabled: true },
@@ -14,13 +25,37 @@ export default function Home() {
     { icon: HomeIcon, title: 'Ibu Bapa', desc: 'Pemantauan Rekod Perkembangan Murid', color: 'text-rose-700', bg: 'bg-rose-50', border: 'hover:border-rose-200', enabled: false },
   ]
 
+  function handleCardTilt(e: React.MouseEvent<HTMLButtonElement>) {
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+    const x = e.clientX - rect.left - rect.width / 2
+    const y = e.clientY - rect.top - rect.height / 2
+    const rotateX = (y / rect.height) * -8
+    const rotateY = (x / rect.width) * 8
+    card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`
+  }
+
+  function resetCardTilt(e: React.MouseEvent<HTMLButtonElement>) {
+    e.currentTarget.style.transform = ''
+  }
+
   return (
-    <div className="auth-shell flex min-h-[100dvh] flex-col items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+    <div ref={containerRef} className="auth-shell relative min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+      {/* Mouse-follow gradient blob */}
+      <div
+        className="pointer-events-none fixed z-0 h-96 w-96 rounded-full opacity-30 blur-[80px] transition-all duration-300 ease-out"
+        style={{
+          background: 'radial-gradient(circle, rgba(47,111,95,0.4), transparent 70%)',
+          left: mousePos.x - 192,
+          top: mousePos.y - 192,
+        }}
+      />
+
       <main className="relative z-10 w-full max-w-4xl">
         {/* Hero — compact inline */}
-        <header className="mb-8 flex flex-col items-center text-center">
+        <header className="mb-8 flex flex-col items-center text-center animate-fade-in">
           <div className="mb-4 flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-neutral-100">
+            <div className="animate-logo-float flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-neutral-100">
               <Image src="/logo-sekolah.png" alt="Logo SK Mohd Khir Johari" width={52} height={52} className="object-contain" />
             </div>
             <div className="text-left">
@@ -41,7 +76,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => router.push('/login')}
-              className="btn-premium group w-full sm:w-auto"
+              className="btn-premium shine-sweep group w-full sm:w-auto"
               aria-label="Log masuk ke sistem"
             >
               <span>Log Masuk ke Sistem</span>
@@ -54,10 +89,10 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Portal cards */}
+        {/* Portal cards — 3D tilt + stagger */}
         <section aria-label="Pilihan portal pengguna">
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-            {roles.map((r) => {
+            {roles.map((r, i) => {
               const Icon = r.icon
               const target = r.enabled ? '/login' : '/coming-soon'
               return (
@@ -65,12 +100,15 @@ export default function Home() {
                   key={r.title}
                   type="button"
                   onClick={() => router.push(target)}
+                  onMouseMove={r.enabled ? handleCardTilt : undefined}
+                  onMouseLeave={r.enabled ? resetCardTilt : undefined}
                   aria-label={`Portal ${r.title}${r.enabled ? '' : ' (Coming Soon)'}`}
-                  className={`group flex flex-col rounded-2xl border border-neutral-100 bg-white p-4 text-left shadow-soft transition-all duration-200 sm:p-5 ${
+                  className={`card-3d animate-fade-up group flex flex-col rounded-2xl border border-neutral-100 bg-white p-4 text-left shadow-soft sm:p-5 ${
                     r.enabled
-                      ? `hover:-translate-y-1 hover:shadow-medium ${r.border}`
+                      ? `${r.border} hover:shadow-medium`
                       : 'opacity-60 hover:opacity-80'
                   }`}
+                  style={{ animationDelay: `${i * 100}ms` }}
                 >
                   <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl ${r.bg} ${r.color} ${!r.enabled ? 'grayscale' : ''} transition-transform duration-200 group-hover:scale-110`}>
                     <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
