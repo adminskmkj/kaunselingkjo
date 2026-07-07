@@ -2,15 +2,16 @@
 
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { GraduationCap, Compass, Users, Home as HomeIcon, ArrowRight } from 'lucide-react'
+import { GraduationCap, Compass, Users, Home as HomeIcon, ArrowRight, Backpack } from 'lucide-react'
 
 export default function Home() {
   const router = useRouter()
 
   const roles = [
-    { icon: GraduationCap, title: 'Murid', desc: 'Rekod Perkembangan Murid', color: 'text-cyan-700 bg-cyan-50' },
-    { icon: Compass, title: 'GBK', desc: 'Intervensi Bimbingan dan Kaunseling', color: 'text-emerald-700 bg-emerald-50' },
-    { icon: HomeIcon, title: 'Ibu Bapa', desc: 'Pemantauan Rekod Perkembangan Murid', color: 'text-amber-800 bg-amber-50' },
+    { icon: GraduationCap, title: 'Murid', desc: 'Rekod Perkembangan Murid', color: 'text-cyan-700 bg-cyan-50', enabled: true },
+    { icon: Compass, title: 'GBK', desc: 'Intervensi Bimbingan dan Kaunseling', color: 'text-emerald-700 bg-emerald-50', enabled: true },
+    { icon: Backpack, title: 'Guru', desc: 'Catatan Tingkah Laku & Kelas', color: 'text-violet-700 bg-violet-50', enabled: false },
+    { icon: HomeIcon, title: 'Ibu Bapa', desc: 'Pemantauan Rekod Perkembangan Murid', color: 'text-amber-800 bg-amber-50', enabled: false },
   ]
 
   return (
@@ -36,12 +37,20 @@ export default function Home() {
           {roles.map((r) => {
             const Icon = r.icon
             return (
-              <div key={r.title} className="card text-left transition hover:-translate-y-0.5">
-                <div className={`mb-4 inline-flex rounded-xl p-3 ${r.color}`}>
+              <div
+                key={r.title}
+                className={`card relative text-left transition ${r.enabled ? 'hover:-translate-y-0.5' : 'opacity-60'}`}
+              >
+                <div className={`mb-4 inline-flex rounded-xl p-3 ${r.color} ${!r.enabled ? 'grayscale' : ''}`}>
                   <Icon size={22} strokeWidth={1.75} />
                 </div>
                 <h2 className="text-lg font-bold text-slate-900">{r.title}</h2>
                 <p className="mt-1 text-sm text-slate-600">{r.desc}</p>
+                {!r.enabled && (
+                  <span className="mt-3 inline-block rounded-full bg-slate-200 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    Coming Soon
+                  </span>
+                )}
               </div>
             )
           })}
