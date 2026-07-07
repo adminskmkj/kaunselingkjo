@@ -43,14 +43,29 @@ export type Database = {
           q8_hubungan_rakan: number | null
           q9_tahap_stres: number | null
           q10_perlukan_bantuan: 'ya' | 'tidak' | 'mungkin' | null
+          q11_emosi_gembira: number | null
+          q12_emosi_tenang: number | null
+          q13_emosi_sedar: number | null
+          q14_emosi_kawal: number | null
+          q15_emosi_senyum: number | null
+          q16_sosial_diterima: number | null
+          q17_sosial_sokongan: number | null
+          q18_sosial_layanan: number | null
+          q19_tekanan_risu: number | null
+          q20_tekanan_takut: number | null
+          q21_tekanan_marah: number | null
+          q22_tekanan_yakin: number | null
           discipline_score: number | null
           emotional_score: number | null
+          emotional_awareness_score: number | null
+          emotional_social_score: number | null
+          emotional_stress_score: number | null
           total_score: number | null
           created_at: string
         }
         Insert: Omit<
           Database['public']['Tables']['checkins']['Row'],
-          'id' | 'created_at' | 'total_score' | 'discipline_score' | 'emotional_score'
+          'id' | 'created_at' | 'total_score' | 'discipline_score' | 'emotional_score' | 'emotional_awareness_score' | 'emotional_social_score' | 'emotional_stress_score'
         >
         Update: Partial<Database['public']['Tables']['checkins']['Insert']>
       }

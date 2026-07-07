@@ -18,8 +18,47 @@ type SupabaseCheckinClient = {
   }
 }
 
-type EmotionType = 'gembira' | 'biasa' | 'sedih' | 'tertekan'
-type NeedHelp = 'ya' | 'mungkin' | 'tidak'
+const SCALE_LABELS = ['Sangat Tidak Setuju', 'Tidak Setuju', 'Neutral', 'Setuju', 'Sangat Setuju']
+const SCALE_EMOJI = ['😞', '🙁', '😐', '🙂', '😄']
+
+type Question = {
+  key: string
+  text: string
+}
+
+const DISIPLIN_QUESTIONS: Question[] = [
+  { key: 'q1_kehadiran_ketepatan', text: 'Saya hadir ke sekolah tepat pada waktunya hari ini.' },
+  { key: 'q2_pematuhan_peraturan', text: 'Saya memakai pakaian seragam mengikut peraturan sekolah.' },
+  { key: 'q3_penyiapan_tugasan', text: 'Saya menghormati guru sepanjang hari ini.' },
+  { key: 'q4_kebersihan', text: 'Saya bercakap dengan sopan kepada rakan-rakan.' },
+  { key: 'q5_komunikasi_sopan', text: 'Saya mendengar arahan guru dan melaksanakannya.' },
+  { key: 'q6_motivasi_belajar', text: 'Saya menyiapkan tugasan yang diberikan.' },
+  { key: 'q8_hubungan_rakan', text: 'Saya menjaga kebersihan kelas dan kawasan sekolah.' },
+  { key: 'q9_tahap_stres', text: 'Saya tidak bergaduh, mengejek atau membuli rakan.' },
+  { key: 'q10_perlukan_bantuan', text: 'Saya menjaga harta benda sekolah dengan baik.' },
+  { key: 'q7_perasaan_emosi', text: 'Saya bertanggungjawab terhadap kesalahan saya jika saya melakukan kesilapan.' },
+]
+
+const EMOSI_A: Question[] = [
+  { key: 'q11_emosi_gembira', text: 'Saya berasa gembira hari ini.' },
+  { key: 'q12_emosi_tenang', text: 'Saya berasa tenang ketika berada di sekolah.' },
+  { key: 'q13_emosi_sedar', text: 'Saya tahu perasaan yang saya alami hari ini.' },
+  { key: 'q14_emosi_kawal', text: 'Saya dapat mengawal emosi apabila menghadapi masalah.' },
+  { key: 'q15_emosi_senyum', text: 'Saya masih mampu tersenyum walaupun menghadapi cabaran hari ini.' },
+]
+
+const EMOSI_B: Question[] = [
+  { key: 'q16_sosial_diterima', text: 'Saya berasa diterima oleh rakan-rakan.' },
+  { key: 'q17_sosial_sokongan', text: 'Saya mempunyai seseorang untuk bercakap apabila saya sedih atau risau.' },
+  { key: 'q18_sosial_layanan', text: 'Saya melayan rakan dengan baik hari ini.' },
+]
+
+const EMOSI_C: Question[] = [
+  { key: 'q19_tekanan_risu', text: 'Saya berasa risau atau tertekan hari ini.' },
+  { key: 'q20_tekanan_takut', text: 'Saya berasa takut untuk datang ke sekolah hari ini.' },
+  { key: 'q21_tekanan_marah', text: 'Saya mudah marah hari ini.' },
+  { key: 'q22_tekanan_yakin', text: 'Saya berasa yakin dengan diri saya hari ini.' },
+]
 
 export default function RefleksiPage() {
   const router = useRouter()
@@ -28,17 +67,8 @@ export default function RefleksiPage() {
   const [submitted, setSubmitted] = useState(false)
   const [formError, setFormError] = useState('')
 
-  // Tiada default — murid mesti pilih setiap soalan
-  const [q1, setQ1] = useState<number | null>(null)
-  const [q2, setQ2] = useState<number | null>(null)
-  const [q3, setQ3] = useState<number | null>(null)
-  const [q4, setQ4] = useState<number | null>(null)
-  const [q5, setQ5] = useState<number | null>(null)
-  const [q6, setQ6] = useState<number | null>(null)
-  const [q7, setQ7] = useState<EmotionType | null>(null)
-  const [q8, setQ8] = useState<number | null>(null)
-  const [q9, setQ9] = useState<number | null>(null)
-  const [q10, setQ10] = useState<NeedHelp | null>(null)
+  const allQuestions = [...DISIPLIN_QUESTIONS, ...EMOSI_A, ...EMOSI_B, ...EMOSI_C]
+  const [answers, setAnswers] = useState<Record<string, number | null>>({})
 
   useEffect(() => {
     if (!authLoading) {
@@ -48,17 +78,11 @@ export default function RefleksiPage() {
     }
   }, [profile, authLoading, router])
 
-  const allAnswered =
-    q1 !== null &&
-    q2 !== null &&
-    q3 !== null &&
-    q4 !== null &&
-    q5 !== null &&
-    q6 !== null &&
-    q7 !== null &&
-    q8 !== null &&
-    q9 !== null &&
-    q10 !== null
+  const allAnswered = allQuestions.every((q) => answers[q.key] !== null && answers[q.key] !== undefined)
+
+  function setAnswer(key: string, value: number) {
+    setAnswers((prev) => ({ ...prev, [key]: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,20 +116,16 @@ export default function RefleksiPage() {
         return
       }
 
-      const { error } = await client.from('checkins').insert({
+      // ponytail: q7/q10 legacy kini INTEGER (skala 1-5), bukan enum lagi
+      const payload: Record<string, unknown> = {
         student_id: profile.id,
         checkin_date: today,
-        q1_kehadiran_ketepatan: q1,
-        q2_pematuhan_peraturan: q2,
-        q3_penyiapan_tugasan: q3,
-        q4_kebersihan: q4,
-        q5_komunikasi_sopan: q5,
-        q6_motivasi_belajar: q6,
-        q7_perasaan_emosi: q7,
-        q8_hubungan_rakan: q8,
-        q9_tahap_stres: q9,
-        q10_perlukan_bantuan: q10,
+      }
+      allQuestions.forEach((q) => {
+        payload[q.key] = answers[q.key]
       })
+
+      const { error } = await client.from('checkins').insert(payload)
 
       if (error) throw error
 
@@ -142,30 +162,38 @@ export default function RefleksiPage() {
   }
 
   const RatingScale = ({
-    value,
-    onChange,
-    labels,
+    questionKey,
   }: {
-    value: number | null
-    onChange: (v: number) => void
-    labels: [string, string, string]
-  }) => (
-    <div className="flex gap-4 justify-center">
-      {[1, 2, 3].map((v) => (
-        <button
-          key={v}
-          type="button"
-          onClick={() => onChange(v)}
-          className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-            value === v
-              ? 'border-blue-500 bg-blue-50 shadow-md'
-              : 'border-gray-200 hover:border-blue-300 bg-white'
-          }`}
-        >
-          <div className="text-3xl mb-2">{v === 1 ? '😔' : v === 2 ? '😐' : '😊'}</div>
-          <p className="text-sm font-medium">{labels[v - 1]}</p>
-        </button>
-      ))}
+    questionKey: string
+  }) => {
+    const value = answers[questionKey] ?? null
+    return (
+      <div className="flex gap-2">
+        {[1, 2, 3, 4, 5].map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setAnswer(questionKey, v)}
+            className={`flex-1 p-3 rounded-lg border-2 transition-all ${
+              value === v
+                ? 'border-blue-500 bg-blue-50 shadow-md'
+                : 'border-gray-200 hover:border-blue-300 bg-white'
+            }`}
+          >
+            <div className="text-2xl mb-1">{SCALE_EMOJI[v - 1]}</div>
+            <p className="text-[10px] font-medium leading-tight">{SCALE_LABELS[v - 1]}</p>
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  const QuestionBlock = ({ q, num }: { q: Question; num: number }) => (
+    <div>
+      <label className="block text-gray-700 font-medium mb-3 text-sm">
+        {num}. {q.text}
+      </label>
+      <RatingScale questionKey={q.key} />
     </div>
   )
 
@@ -176,109 +204,55 @@ export default function RefleksiPage() {
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Refleksi Harian</h1>
             <p className="text-gray-600">Luangkan 2-3 minit untuk menilai hari anda</p>
-            <p className="mt-2 text-sm text-slate-500">Pilih satu jawapan untuk setiap soalan — tiada jawapan lalai.</p>
+            <p className="mt-2 text-sm text-slate-500">Skala 1-5: 1=Sangat Tidak Setuju, 5=Sangat Setuju</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Bahagian A: Disiplin */}
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-6 pb-2 border-b">
-                Bahagian A: Disiplin & Tanggungjawab
+                Bahagian A: Refleksi Disiplin
               </h2>
-
               <div className="space-y-6">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">1. Kehadiran & ketepatan masa</label>
-                  <RatingScale value={q1} onChange={setQ1} labels={['Lewat', 'Tepat kadang-kadang', 'Sentiasa tepat']} />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">2. Pematuhan peraturan sekolah</label>
-                  <RatingScale value={q2} onChange={setQ2} labels={['Kurang patuh', 'Sederhana', 'Sangat patuh']} />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">3. Penyiapan tugasan</label>
-                  <RatingScale value={q3} onChange={setQ3} labels={['Tidak siap', 'Kadang-kadang', 'Sentiasa siap']} />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">4. Kebersihan diri & persekitaran</label>
-                  <RatingScale value={q4} onChange={setQ4} labels={['Kurang', 'Sederhana', 'Cemerlang']} />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">5. Komunikasi sopan dengan guru & rakan</label>
-                  <RatingScale value={q5} onChange={setQ5} labels={['Kurang sopan', 'Sederhana', 'Sangat sopan']} />
-                </div>
+                {DISIPLIN_QUESTIONS.map((q, i) => (
+                  <QuestionBlock key={q.key} q={q} num={i + 1} />
+                ))}
               </div>
             </div>
 
+            {/* Bahagian B: Emosi - Kesedaran Emosi */}
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-6 pb-2 border-b">
-                Bahagian B: Emosi & Kesejahteraan
+                Bahagian B: Refleksi Emosi
               </h2>
-
+              <h3 className="text-sm font-bold text-indigo-700 mb-4">B1. Kesedaran Emosi</h3>
               <div className="space-y-6">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">6. Tahap motivasi belajar hari ini</label>
-                  <RatingScale value={q6} onChange={setQ6} labels={['Rendah', 'Sederhana', 'Tinggi']} />
-                </div>
+                {EMOSI_A.map((q, i) => (
+                  <QuestionBlock key={q.key} q={q} num={i + 1} />
+                ))}
+              </div>
+            </div>
 
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">7. Perasaan emosi saya hari ini</label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {(['gembira', 'biasa', 'sedih', 'tertekan'] as EmotionType[]).map((emotion) => (
-                      <button
-                        key={emotion}
-                        type="button"
-                        onClick={() => setQ7(emotion)}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          q7 === emotion
-                            ? 'border-blue-500 bg-blue-50 shadow-md'
-                            : 'border-gray-200 hover:border-blue-300 bg-white'
-                        }`}
-                      >
-                        <div className="text-3xl mb-2">
-                          {emotion === 'gembira' ? '😄' : emotion === 'biasa' ? '😐' : emotion === 'sedih' ? '😢' : '😰'}
-                        </div>
-                        <p className="text-sm font-medium capitalize">{emotion}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            {/* B2: Hubungan Sosial */}
+            <div>
+              <h3 className="text-sm font-bold text-indigo-700 mb-4">B2. Hubungan Sosial</h3>
+              <div className="space-y-6">
+                {EMOSI_B.map((q, i) => (
+                  <QuestionBlock key={q.key} q={q} num={i + 1} />
+                ))}
+              </div>
+            </div>
 
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">8. Hubungan dengan rakan sebaya</label>
-                  <RatingScale value={q8} onChange={setQ8} labels={['Konflik', 'Neutral', 'Harmoni']} />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">9. Tahap stres / tekanan</label>
-                  <RatingScale value={q9} onChange={setQ9} labels={['Tinggi', 'Sederhana', 'Rendah']} />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-3">10. Adakah saya perlukan bantuan?</label>
-                  <div className="flex gap-4">
-                    {(['ya', 'mungkin', 'tidak'] as NeedHelp[]).map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => setQ10(option)}
-                        className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                          q10 === option
-                            ? 'border-blue-500 bg-blue-50 shadow-md'
-                            : 'border-gray-200 hover:border-blue-300 bg-white'
-                        }`}
-                      >
-                        <div className="text-3xl mb-2">
-                          {option === 'ya' ? '🆘' : option === 'mungkin' ? '🤔' : '👍'}
-                        </div>
-                        <p className="text-sm font-medium capitalize">{option}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            {/* B3: Tekanan & Kebimbangan */}
+            <div>
+              <h3 className="text-sm font-bold text-indigo-700 mb-2">B3. Tekanan & Kebimbangan</h3>
+              <p className="mb-4 text-xs text-slate-500 italic">
+                Untuk soalan ini, jawab ikut perasaan sebenar. (Skor akan di-reverse: semakin tinggi skor akhir = semakin sihat emosi)
+              </p>
+              <div className="space-y-6">
+                {EMOSI_C.map((q, i) => (
+                  <QuestionBlock key={q.key} q={q} num={i + 1} />
+                ))}
               </div>
             </div>
 
