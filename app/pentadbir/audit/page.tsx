@@ -97,14 +97,14 @@ export default function AuditPage() {
     <PortalShell title="Log Audit" subtitle="Rekod akses & tindakan dalam sistem">
       <button
         onClick={() => router.push('/pentadbir')}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800"
       >
         <ArrowLeft size={14} /> Kembali ke Dashboard
       </button>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input
             type="text"
             value={search}
@@ -127,16 +127,16 @@ export default function AuditPage() {
       <div className="rounded-2xl bg-white p-4 shadow">
         <div className="mb-3 flex items-center gap-2">
           <Shield size={18} className="text-primary-700" />
-          <h2 className="text-sm font-black text-slate-900">{filtered.length} rekod</h2>
+          <h2 className="text-sm font-black text-neutral-900">{filtered.length} rekod</h2>
         </div>
 
         {filtered.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-400">Tiada log audit.</p>
+          <p className="py-8 text-center text-sm text-neutral-400">Tiada log audit.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-slate-200 text-left font-bold uppercase text-slate-500">
+                <tr className="border-b border-neutral-200 text-left font-bold uppercase text-neutral-500">
                   <th className="py-2 pr-3">Masa</th>
                   <th className="py-2 pr-3">Tindakan</th>
                   <th className="py-2 pr-3">Pelaku</th>
@@ -146,14 +146,14 @@ export default function AuditPage() {
               </thead>
               <tbody>
                 {filtered.map((l) => (
-                  <tr key={l.id} className="border-b border-slate-50">
-                    <td className="py-2 pr-3 text-slate-500 whitespace-nowrap">
+                  <tr key={l.id} className="border-b border-neutral-50">
+                    <td className="py-2 pr-3 text-neutral-500 whitespace-nowrap">
                       {new Date(l.timestamp).toLocaleString('ms-MY', { dateStyle: 'short', timeStyle: 'short' })}
                     </td>
-                    <td className="py-2 pr-3 font-medium text-slate-900">{l.action}</td>
-                    <td className="py-2 pr-3 text-slate-600">{l.actor_name || '—'}</td>
-                    <td className="py-2 pr-3 text-slate-600">{l.target_name || '—'}</td>
-                    <td className="py-2 pr-3 text-slate-400 font-mono">{l.ip_address || '—'}</td>
+                    <td className="py-2 pr-3 font-medium text-neutral-900">{l.action}</td>
+                    <td className="py-2 pr-3 text-neutral-600">{l.actor_name || '—'}</td>
+                    <td className="py-2 pr-3 text-neutral-600">{l.target_name || '—'}</td>
+                    <td className="py-2 pr-3 text-neutral-400 font-mono">{l.ip_address || '—'}</td>
                   </tr>
                 ))}
               </tbody>

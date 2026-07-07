@@ -144,13 +144,13 @@ export default function StaffPage() {
     <PortalShell title="Pengurusan Staff" subtitle="Cipta akaun GBK, Guru, Pentadbir — reset password">
       <button
         onClick={() => router.push('/pentadbir')}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800"
       >
         <ArrowLeft size={14} /> Kembali ke Dashboard
       </button>
 
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-slate-900">Senarai Staff ({staff.length})</h2>
+        <h2 className="text-lg font-bold text-neutral-900">Senarai Staff ({staff.length})</h2>
         <button
           onClick={() => setShowForm(!showForm)}
           className="btn-primary inline-flex items-center gap-2 text-sm"
@@ -161,10 +161,10 @@ export default function StaffPage() {
 
       {showForm && (
         <div className="mb-6 rounded-2xl border border-primary-100 bg-primary-50/40 p-5">
-          <h3 className="mb-4 text-sm font-black text-slate-900">Akaun Staff Baru</h3>
+          <h3 className="mb-4 text-sm font-black text-neutral-900">Akaun Staff Baru</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="text-xs font-bold text-slate-600">Email</label>
+              <label className="text-xs font-bold text-neutral-600">Email</label>
               <input
                 type="email"
                 value={form.email}
@@ -174,7 +174,7 @@ export default function StaffPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-600">Nama Penuh</label>
+              <label className="text-xs font-bold text-neutral-600">Nama Penuh</label>
               <input
                 type="text"
                 value={form.full_name}
@@ -184,7 +184,7 @@ export default function StaffPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-600">Peranan</label>
+              <label className="text-xs font-bold text-neutral-600">Peranan</label>
               <select
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value })}
@@ -197,7 +197,7 @@ export default function StaffPage() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-600">Kelas (opsyenal)</label>
+              <label className="text-xs font-bold text-neutral-600">Kelas (opsyenal)</label>
               <input
                 type="text"
                 value={form.class_name}
@@ -228,12 +228,12 @@ export default function StaffPage() {
       )}
 
       {staff.length === 0 ? (
-        <p className="py-12 text-center text-sm text-slate-400">Tiada staff berdaftar.</p>
+        <p className="py-12 text-center text-sm text-neutral-400">Tiada staff berdaftar.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-200 text-left text-xs font-bold uppercase text-slate-500">
+              <tr className="border-b border-neutral-200 text-left text-xs font-bold uppercase text-neutral-500">
                 <th className="py-3 pr-4">Nama</th>
                 <th className="py-3 pr-4">Email</th>
                 <th className="py-3 pr-4">Peranan</th>
@@ -243,15 +243,15 @@ export default function StaffPage() {
             </thead>
             <tbody>
               {staff.map((s) => (
-                <tr key={s.id} className="border-b border-slate-100">
-                  <td className="py-3 pr-4 font-semibold text-slate-900">{s.full_name}</td>
-                  <td className="py-3 pr-4 text-slate-600">{s.email}</td>
+                <tr key={s.id} className="border-b border-neutral-100">
+                  <td className="py-3 pr-4 font-semibold text-neutral-900">{s.full_name}</td>
+                  <td className="py-3 pr-4 text-neutral-600">{s.email}</td>
                   <td className="py-3 pr-4">
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">
+                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-bold text-neutral-700">
                       {ROLE_LABELS[s.role] || s.role}
                     </span>
                   </td>
-                  <td className="py-3 pr-4 text-slate-600">{s.class_name || '—'}</td>
+                  <td className="py-3 pr-4 text-neutral-600">{s.class_name || '—'}</td>
                   <td className="py-3 pr-4 text-right">
                     <div className="inline-flex gap-1">
                       <button

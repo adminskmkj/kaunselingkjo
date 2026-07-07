@@ -143,19 +143,19 @@ export default function RefleksiPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="auth-shell flex min-h-screen items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"></div>
       </div>
     )
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-indigo-100">
-        <div className="text-center">
-          <div className="text-6xl mb-4">✅</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Terima Kasih!</h2>
-          <p className="text-gray-600">Refleksi anda telah disimpan.</p>
+      <div className="auth-shell flex min-h-screen items-center justify-center">
+        <div className="animate-fade-up text-center">
+          <div className="mb-4 text-7xl">✅</div>
+          <h2 className="text-2xl font-extrabold text-neutral-900" style={{ fontFamily: 'var(--font-display), system-ui, sans-serif' }}>Terima Kasih!</h2>
+          <p className="mt-2 text-neutral-500">Refleksi anda telah disimpan.</p>
         </div>
       </div>
     )
@@ -198,13 +198,18 @@ export default function RefleksiPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-indigo-100 py-8">
-      <div className="max-w-3xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-xl p-8">
+    <div className="auth-shell min-h-screen py-8">
+      <div className="mx-auto max-w-3xl px-4">
+        <div className="glass animate-fade-up rounded-3xl p-6 shadow-[0_20px_60px_-15px_rgba(47,111,95,0.15)] md:p-8">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Refleksi Harian</h1>
-            <p className="text-gray-600">Luangkan 2-3 minit untuk menilai hari anda</p>
-            <p className="mt-2 text-sm text-slate-500">Skala 1-5: 1=Sangat Tidak Setuju, 5=Sangat Setuju</p>
+            <h1 className="text-3xl font-extrabold text-neutral-900" style={{ fontFamily: 'var(--font-display), system-ui, sans-serif' }}>Refleksi Harian</h1>
+            <p className="mt-2 text-neutral-500">Luangkan 2-3 minit untuk menilai hari anda</p>
+            <p className="mt-1 text-sm text-neutral-400">Skala 1-5: 1=Sangat Tidak Setuju, 5=Sangat Setuju</p>
+            {/* Progress bar */}
+            <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+              <div className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-400 transition-all duration-300" style={{ width: `${(Object.values(answers).filter(v => v !== null).length / allQuestions.length) * 100}%` }} />
+            </div>
+            <p className="mt-1.5 text-xs text-neutral-400">{Object.values(answers).filter(v => v !== null).length}/{allQuestions.length} dijawab</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -264,14 +269,14 @@ export default function RefleksiPage() {
               <button
                 type="button"
                 onClick={() => router.push('/murid')}
-                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                className="flex-1 rounded-2xl bg-neutral-200 py-3 font-medium text-neutral-700 transition hover:bg-neutral-300"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={loading || !allAnswered}
-                className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                className="btn-premium shine-sweep flex-1"
               >
                 {loading ? 'Menyimpan...' : 'Hantar Refleksi'}
               </button>

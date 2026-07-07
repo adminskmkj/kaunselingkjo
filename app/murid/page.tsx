@@ -94,21 +94,21 @@ export default function MuridDashboard() {
   return (
     <PortalShell title="Dashboard Murid" subtitle="Rekod Perkembangan Murid anda">
       {/* KPI */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         {[
           { icon: <Flame size={20} />, label: 'Streak Harian', value: `${points?.current_streak ?? 0} hari`, sub: `Rekod: ${points?.longest_streak ?? 0} hari`, bg: 'bg-orange-500' },
           { icon: <Star size={20} />, label: 'Jumlah Mata', value: points?.total_points ?? 0, sub: 'Dikumpul setakat ini', bg: 'bg-amber-500' },
           { icon: <BarChart2 size={20} />, label: 'Skor Disiplin', value: `${avgDisc}%`, sub: 'Purata 7 hari', bg: 'bg-primary-600' },
-          { icon: <Heart size={20} />, label: 'Skor Emosi', value: `${avgEmo}%`, sub: 'Purata 7 hari', bg: 'bg-slate-600' },
+          { icon: <Heart size={20} />, label: 'Skor Emosi', value: `${avgEmo}%`, sub: 'Purata 7 hari', bg: 'bg-violet-600' },
           { icon: <Trophy size={20} />, label: 'Lencana', value: badges.length, sub: 'Pencapaian diperoleh', bg: 'bg-emerald-600' },
-        ].map((k) => (
-          <div key={k.label} className="panel transition hover:-translate-y-0.5">
-            <div className={`mb-3 inline-flex items-center justify-center rounded-xl ${k.bg} p-2.5 text-white`}>
+        ].map((k, i) => (
+          <div key={k.label} className="animate-fade-up panel transition hover:-translate-y-1 hover:shadow-medium" style={{ animationDelay: `${i * 60}ms` }}>
+            <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl ${k.bg} text-white shadow-md`}>
               {k.icon}
             </div>
-            <p className="text-2xl font-black text-slate-900">{k.value}</p>
-            <p className="text-sm font-semibold text-slate-600">{k.label}</p>
-            <p className="mt-0.5 text-xs text-slate-400">{k.sub}</p>
+            <p className="text-2xl font-black text-neutral-900">{k.value}</p>
+            <p className="text-sm font-semibold text-neutral-600">{k.label}</p>
+            <p className="mt-0.5 text-xs text-neutral-400">{k.sub}</p>
           </div>
         ))}
       </div>
@@ -116,71 +116,73 @@ export default function MuridDashboard() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           {/* Skor + Trend */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60 space-y-6">
-            <div>
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-base font-black text-slate-900">Trend Skor Disiplin (7 Hari)</h2>
-                <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">{avgDisc}% purata</span>
-              </div>
-              {history.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-400">Belum ada rekod.</p>
-              ) : (
-                <div className="flex items-end gap-2 h-24">
-                  {[...history].reverse().map((h, i) => {
-                    const pct = Math.round(h.discipline_score ?? 0)
-                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-primary-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
-                    return (
-                      <div key={`d-${i}`} className="flex flex-1 flex-col items-center gap-1">
-                        <span className="text-[10px] font-bold text-slate-600">{pct}%</span>
-                        <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
-                        <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
-                      </div>
-                    )
-                  })}
+          <div className="animate-fade-up overflow-hidden rounded-3xl bg-white p-6 shadow-soft" style={{ animationDelay: '300ms' }}>
+            <div className="space-y-6">
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-base font-black text-neutral-900">Trend Skor Disiplin (7 Hari)</h2>
+                  <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">{avgDisc}% purata</span>
                 </div>
-              )}
-            </div>
-            <div>
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-base font-black text-slate-900">Trend Skor Emosi (7 Hari)</h2>
-                <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-violet-700">{avgEmo}% purata</span>
+                {history.length === 0 ? (
+                  <p className="py-4 text-center text-sm text-neutral-400">Belum ada rekod.</p>
+                ) : (
+                  <div className="flex items-end gap-2 h-24">
+                    {[...history].reverse().map((h, i) => {
+                      const pct = Math.round(h.discipline_score ?? 0)
+                      const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-primary-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
+                      return (
+                        <div key={`d-${i}`} className="flex flex-1 flex-col items-center gap-1">
+                          <span className="text-[10px] font-bold text-neutral-600">{pct}%</span>
+                          <div className={`w-full rounded-t-lg transition-all duration-500 ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
+                          <span className="text-[10px] text-neutral-400">{h.checkin_date.slice(5)}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
-              {history.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-400">Belum ada rekod.</p>
-              ) : (
-                <div className="flex items-end gap-2 h-24">
-                  {[...history].reverse().map((h, i) => {
-                    const pct = Math.round(h.emotional_score ?? 0)
-                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-violet-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
-                    return (
-                      <div key={`e-${i}`} className="flex flex-1 flex-col items-center gap-1">
-                        <span className="text-[10px] font-bold text-slate-600">{pct}%</span>
-                        <div className={`w-full rounded-t-lg ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
-                        <span className="text-[10px] text-slate-400">{h.checkin_date.slice(5)}</span>
-                      </div>
-                    )
-                  })}
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-base font-black text-neutral-900">Trend Skor Emosi (7 Hari)</h2>
+                  <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-violet-700">{avgEmo}% purata</span>
                 </div>
-              )}
+                {history.length === 0 ? (
+                  <p className="py-4 text-center text-sm text-neutral-400">Belum ada rekod.</p>
+                ) : (
+                  <div className="flex items-end gap-2 h-24">
+                    {[...history].reverse().map((h, i) => {
+                      const pct = Math.round(h.emotional_score ?? 0)
+                      const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-violet-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
+                      return (
+                        <div key={`e-${i}`} className="flex flex-1 flex-col items-center gap-1">
+                          <span className="text-[10px] font-bold text-neutral-600">{pct}%</span>
+                          <div className={`w-full rounded-t-lg transition-all duration-500 ${color}`} style={{ height: `${(pct / 100) * 64}px`, minHeight: 4 }} />
+                          <span className="text-[10px] text-neutral-400">{h.checkin_date.slice(5)}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Lencana */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60">
+          <div className="animate-fade-up overflow-hidden rounded-3xl bg-white p-6 shadow-soft" style={{ animationDelay: '400ms' }}>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-black text-slate-900">Lencana & Pencapaian</h2>
-              <button onClick={() => router.push('/murid/lencana')} className="flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-blue-800">
+              <h2 className="text-lg font-black text-neutral-900">Lencana &amp; Pencapaian</h2>
+              <button onClick={() => router.push('/murid/lencana')} className="flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-800">
                 Lihat semua <ArrowRight size={14} />
               </button>
             </div>
             {badges.length === 0 ? (
-              <p className="py-6 text-center text-sm text-slate-400">Belum ada lencana. Terus buat refleksi untuk unlock.</p>
+              <p className="py-6 text-center text-sm text-neutral-400">Belum ada lencana. Terus buat refleksi untuk unlock.</p>
             ) : (
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-                {badges.map((b) => (
-                  <div key={b.id} className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50 p-3 text-center">
+                {badges.map((b, i) => (
+                  <div key={b.id} className="animate-fade-up flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50 p-3 text-center transition hover:-translate-y-1" style={{ animationDelay: `${500 + i * 60}ms` }}>
                     <span className="text-2xl">{b.icon ?? '🏅'}</span>
-                    <span className="text-[10px] font-bold leading-tight text-slate-700">{b.badge_name}</span>
+                    <span className="text-[10px] font-bold leading-tight text-neutral-700">{b.badge_name}</span>
                   </div>
                 ))}
               </div>
@@ -191,8 +193,8 @@ export default function MuridDashboard() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Skor hari ini */}
-          <div className="panel bg-slate-900 text-white ring-0">
-            <p className="mb-4 text-sm font-semibold text-slate-300">Skor Hari Ini</p>
+          <div className="animate-fade-up overflow-hidden rounded-3xl bg-neutral-900 p-6 text-white shadow-strong" style={{ animationDelay: '200ms' }}>
+            <p className="mb-4 text-sm font-semibold text-neutral-300">Skor Hari Ini</p>
             <div className="flex justify-center gap-6">
               {todayCheckin ? (
                 <>
@@ -207,40 +209,40 @@ export default function MuridDashboard() {
                 </>
               ) : (
                 <div className="py-4 text-center">
-                  <FileText className="mx-auto text-slate-400" size={36} />
-                  <p className="mt-3 text-sm font-medium text-slate-300">Belum isi refleksi</p>
+                  <FileText className="mx-auto text-neutral-500" size={36} />
+                  <p className="mt-3 text-sm font-medium text-neutral-300">Belum isi refleksi</p>
                 </div>
               )}
             </div>
             <button
               onClick={() => router.push('/murid/refleksi')}
               disabled={!!todayCheckin}
-              className="mt-5 w-full rounded-2xl bg-primary-500 py-3 text-sm font-bold text-white transition hover:bg-primary-400 disabled:opacity-50"
+              className="mt-5 w-full rounded-2xl bg-gradient-to-r from-primary-500 to-primary-400 py-3 text-sm font-bold text-white transition hover:shadow-lg hover:shadow-primary-500/30 disabled:opacity-50"
             >
               {todayCheckin ? '✓ Sudah Selesai Hari Ini' : 'Mula Refleksi Sekarang'}
             </button>
             <button
               onClick={() => router.push('/murid/tempah-sesi')}
-              className="mt-3 w-full rounded-2xl border border-white/30 py-2.5 text-sm font-bold text-white transition hover:bg-white/10"
+              className="mt-3 w-full rounded-2xl border border-white/20 py-2.5 text-sm font-bold text-white transition hover:bg-white/10"
             >
               Tempah Sesi Kaunseling
             </button>
           </div>
 
           {/* Quick links */}
-          <div className="overflow-hidden rounded-[1.5rem] bg-white p-5 shadow-xl shadow-slate-200/60">
-            <h2 className="mb-4 text-base font-black text-slate-900">Akses Pantas</h2>
+          <div className="animate-fade-up overflow-hidden rounded-3xl bg-white p-5 shadow-soft" style={{ animationDelay: '500ms' }}>
+            <h2 className="mb-4 text-base font-black text-neutral-900">Akses Pantas</h2>
             <div className="grid grid-cols-2 gap-3">
-              {quickLinks.map((l) => (
+              {quickLinks.map((l, i) => (
                 <button
                   key={l.path}
                   onClick={() => router.push(l.path)}
-                  className="group flex flex-col items-center gap-2 rounded-2xl bg-slate-50 p-4 text-center transition hover:shadow-md hover:-translate-y-0.5"
+                  className="group flex flex-col items-center gap-2 rounded-2xl bg-neutral-50 p-4 text-center transition hover:-translate-y-1 hover:shadow-md"
                 >
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${l.bg} text-white transition-transform group-hover:scale-105`}>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${l.bg} text-white transition-transform group-hover:scale-110`}>
                     {l.icon}
                   </div>
-                  <span className="text-xs font-bold text-slate-700">{l.label}</span>
+                  <span className="text-xs font-bold text-neutral-700">{l.label}</span>
                 </button>
               ))}
             </div>

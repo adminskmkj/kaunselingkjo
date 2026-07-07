@@ -82,7 +82,7 @@ function SidebarNav({
 }) {
   return (
     <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
-      {visibleNav.map((item) => {
+      {visibleNav.map((item, i) => {
         const Icon = item.icon
         const active =
           pathname === item.href ||
@@ -92,11 +92,12 @@ function SidebarNav({
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+            className={`animate-fade-up flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
               active
-                ? 'bg-primary-500/15 text-primary-50 ring-1 ring-primary-400/25'
+                ? 'bg-primary-500/20 text-white ring-1 ring-primary-400/30'
                 : 'text-slate-300 hover:bg-white/5 hover:text-white'
             }`}
+            style={{ animationDelay: `${i * 40}ms` }}
           >
             <Icon size={18} strokeWidth={1.75} className={active ? 'text-primary-300' : 'text-slate-400'} />
             <span className="truncate">{item.label}</span>
@@ -148,7 +149,7 @@ export function PortalShell({
   return (
     <div className="min-h-[100dvh] bg-[var(--background)] text-slate-900">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[17.5rem] flex-col border-r border-[var(--sidebar-border)] bg-[var(--sidebar)] lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[17.5rem] flex-col border-r border-[var(--sidebar-border)] bg-[var(--sidebar)] bg-noise-sidebar lg:flex">
         <div className="border-b border-[var(--sidebar-border)] px-5 py-5">
           <Link href="/dashboard" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-lg overflow-hidden">
@@ -191,7 +192,7 @@ export function PortalShell({
             aria-label="Tutup menu"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 flex w-[min(18rem,88vw)] flex-col bg-[var(--sidebar)] shadow-2xl">
+          <aside className="bg-noise-sidebar absolute inset-y-0 left-0 flex w-[min(18rem,88vw)] flex-col shadow-2xl">
             <div className="flex items-center justify-between border-b border-[var(--sidebar-border)] px-4 py-4">
               <span className="font-bold text-white">Menu</span>
               <button type="button" onClick={() => setMobileOpen(false)} className="rounded-lg p-2 text-slate-300 hover:bg-white/10">
@@ -209,23 +210,23 @@ export function PortalShell({
       )}
 
       <div className="lg:pl-[17.5rem]">
-        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-          <div className="flex items-start justify-between gap-4 px-4 py-4 md:px-8">
+        <header className="glass sticky top-0 z-30 border-b border-neutral-200/50">
+          <div className="flex items-start justify-between gap-4 px-4 py-3.5 md:px-8">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className="rounded-xl border border-slate-200 p-2 text-slate-600 lg:hidden"
+                  className="rounded-xl border border-neutral-200 bg-white/80 p-2 text-neutral-600 lg:hidden"
                   onClick={() => setMobileOpen(true)}
                   aria-label="Buka menu"
                 >
                   <Menu size={20} />
                 </button>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-500">
-                    Selamat datang, <span className="text-slate-800">{firstName}</span>
+                  <p className="text-sm font-medium text-neutral-500">
+                    Selamat datang, <span className="font-bold text-neutral-800">{firstName}</span>
                   </p>
-                  <p className="text-xs text-slate-400">{today}</p>
+                  <p className="text-xs text-neutral-400">{today}</p>
                 </div>
               </div>
             </div>

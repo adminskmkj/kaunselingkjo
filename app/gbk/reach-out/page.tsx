@@ -168,7 +168,7 @@ export default function GBKReachOutPage() {
       <div className="mb-6">
         <Link
           href="/gbk"
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+          className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 shadow-sm hover:bg-neutral-50"
         >
           <ArrowLeft size={16} /> Pemantauan GBK
         </Link>
@@ -186,7 +186,7 @@ export default function GBKReachOutPage() {
             type="button"
             onClick={() => setFilter(f)}
             className={`rounded-full px-4 py-1.5 text-xs font-bold ${
-              filter === f ? 'bg-primary-700 text-white' : 'bg-white border border-slate-200 text-slate-600'
+              filter === f ? 'bg-primary-700 text-white' : 'bg-white border border-neutral-200 text-neutral-600'
             }`}
           >
             {f === 'baru' ? 'Aktif (Baru/Dibaca)' : 'Semua'}
@@ -198,10 +198,10 @@ export default function GBKReachOutPage() {
         <section className="card lg:col-span-2 max-h-[70vh] overflow-y-auto">
           <div className="mb-3 flex items-center gap-2">
             <Inbox size={20} className="text-primary-600" />
-            <h2 className="font-black text-slate-900">Senarai ({filtered.length})</h2>
+            <h2 className="font-black text-neutral-900">Senarai ({filtered.length})</h2>
           </div>
           {filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-slate-500">Tiada mesej.</p>
+            <p className="py-8 text-center text-sm text-neutral-500">Tiada mesej.</p>
           ) : (
             <ul className="divide-y divide-slate-100">
               {filtered.map((r) => (
@@ -209,18 +209,18 @@ export default function GBKReachOutPage() {
                   <button
                     type="button"
                     onClick={() => selectRow(r.id)}
-                    className={`w-full px-3 py-3 text-left transition hover:bg-slate-50 ${
+                    className={`w-full px-3 py-3 text-left transition hover:bg-neutral-50 ${
                       selectedId === r.id ? 'bg-primary-50' : ''
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="font-semibold text-slate-900">{r.student_name}</span>
+                      <span className="font-semibold text-neutral-900">{r.student_name}</span>
                       <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${reachOutStatusClass(r.status)}`}>
                         {REACH_OUT_STATUS_LABELS[r.status]}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">{r.class_name || '—'} · {REACH_OUT_SOURCE_LABELS[r.source]}</p>
-                    <p className="mt-1 line-clamp-2 text-xs text-slate-600">{r.message}</p>
+                    <p className="mt-1 text-xs text-neutral-500">{r.class_name || '—'} · {REACH_OUT_SOURCE_LABELS[r.source]}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-neutral-600">{r.message}</p>
                   </button>
                 </li>
               ))}
@@ -230,15 +230,15 @@ export default function GBKReachOutPage() {
 
         <section className="card lg:col-span-3">
           {!selected ? (
-            <p className="py-16 text-center text-sm text-slate-500">Pilih mesej untuk baca & balas.</p>
+            <p className="py-16 text-center text-sm text-neutral-500">Pilih mesej untuk baca & balas.</p>
           ) : (
             <>
-              <div className="mb-4 border-b border-slate-100 pb-4">
-                <h3 className="text-lg font-black text-slate-900">{selected.student_name}</h3>
-                <p className="text-sm text-slate-500">
+              <div className="mb-4 border-b border-neutral-100 pb-4">
+                <h3 className="text-lg font-black text-neutral-900">{selected.student_name}</h3>
+                <p className="text-sm text-neutral-500">
                   {selected.class_name} · {new Date(selected.created_at).toLocaleString('ms-MY')}
                 </p>
-                <p className="mt-3 whitespace-pre-wrap text-sm text-slate-800">{selected.message}</p>
+                <p className="mt-3 whitespace-pre-wrap text-sm text-neutral-800">{selected.message}</p>
               </div>
               {selected.reply_message && (
                 <div className="mb-4 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">
@@ -248,7 +248,7 @@ export default function GBKReachOutPage() {
               )}
               {selected.status !== 'ditutup' && (
                 <>
-                  <label className="mb-2 block text-sm font-bold text-slate-700">Balas murid</label>
+                  <label className="mb-2 block text-sm font-bold text-neutral-700">Balas murid</label>
                   <textarea
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}

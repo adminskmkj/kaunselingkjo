@@ -103,7 +103,7 @@ export default function RepairPage() {
     <PortalShell title="Repair Profiles" subtitle="Baiki akaun Auth yang tiada profil (orphan)">
       <button
         onClick={() => router.push('/pentadbir')}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800"
       >
         <ArrowLeft size={14} /> Kembali ke Dashboard
       </button>
@@ -111,10 +111,10 @@ export default function RepairPage() {
       <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-5">
         <div className="mb-3 flex items-center gap-2">
           <Wrench size={20} className="text-amber-700" />
-          <h2 className="text-sm font-black text-slate-900">Repair Orphan Profiles</h2>
+          <h2 className="text-sm font-black text-neutral-900">Repair Orphan Profiles</h2>
         </div>
-        <p className="mb-4 text-xs text-slate-600">
-          Akaun Auth (auth.users) yang tiada row dalam <code className="rounded bg-slate-100 px-1">profiles</code> akan
+        <p className="mb-4 text-xs text-neutral-600">
+          Akaun Auth (auth.users) yang tiada row dalam <code className="rounded bg-neutral-100 px-1">profiles</code> akan
           menyebabkan login gagal dengan &quot;Profil tidak dijumpai&quot. Klik butang di bawah untuk baiki automatik.
         </p>
 
@@ -124,7 +124,7 @@ export default function RepairPage() {
               <AlertTriangle size={14} className="mr-1 inline" />
               {orphans.length} akaun orphan ditemui
             </p>
-            <ul className="space-y-1 text-xs text-slate-600">
+            <ul className="space-y-1 text-xs text-neutral-600">
               {orphans.slice(0, 10).map((o) => (
                 <li key={o.id} className="font-mono">{o.email}</li>
               ))}
@@ -153,7 +153,7 @@ export default function RepairPage() {
               </ul>
             )}
             {result.fixed === 0 && result.skipped === 0 && result.errors.length === 0 && (
-              <p className="text-sm text-slate-500">Tiada orphan ditemui. Semua akaun ada profil.</p>
+              <p className="text-sm text-neutral-500">Tiada orphan ditemui. Semua akaun ada profil.</p>
             )}
           </div>
         )}

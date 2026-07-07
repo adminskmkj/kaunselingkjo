@@ -109,11 +109,11 @@ export default function PentadbirPage() {
               className={`rounded-2xl p-5 text-left font-semibold transition-all duration-200 ${
                 module.featured
                   ? 'border-2 border-primary-700 bg-primary-700 text-white shadow-md hover:bg-cyan-800'
-                  : 'border border-slate-200 bg-white text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 disabled:cursor-not-allowed disabled:opacity-50'
+                  : 'border border-neutral-200 bg-white text-neutral-700 hover:border-primary-200 hover:bg-primary-50/50 disabled:cursor-not-allowed disabled:opacity-50'
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${module.featured ? 'bg-white/15' : 'bg-slate-100 text-primary-700'}`}>
+                <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${module.featured ? 'bg-white/15' : 'bg-neutral-100 text-primary-700'}`}>
                   <Icon size={20} />
                 </span>
                 <span className="flex-1">{module.label}</span>

@@ -249,7 +249,7 @@ export default function GBKCasesPage() {
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <Link
           href="/gbk"
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+          className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 shadow-sm hover:bg-neutral-50"
         >
           <ArrowLeft size={16} /> Pemantauan Risiko
         </Link>
@@ -294,7 +294,7 @@ export default function GBKCasesPage() {
                 ? key === 'overdue'
                   ? 'bg-rose-600 text-white shadow'
                   : 'bg-primary-600 text-white shadow'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
             }`}
           >
             {label}
@@ -303,13 +303,13 @@ export default function GBKCasesPage() {
       </div>
 
       <section className="card overflow-hidden">
-        <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-4">
+        <div className="mb-4 flex items-center gap-2 border-b border-neutral-100 pb-4">
           <ClipboardList className="text-primary-600" size={22} />
-          <h2 className="text-lg font-black text-slate-900">Senarai Kes ({filtered.length})</h2>
+          <h2 className="text-lg font-black text-neutral-900">Senarai Kes ({filtered.length})</h2>
         </div>
 
         {filtered.length === 0 ? (
-          <p className="py-10 text-center text-sm text-slate-500">
+          <p className="py-10 text-center text-sm text-neutral-500">
             Tiada kes. Rekod intervensi dari{' '}
             <Link href="/gbk" className="font-semibold text-primary-600 underline">
               Pemantauan GBK
@@ -319,10 +319,10 @@ export default function GBKCasesPage() {
         ) : (
           <div className="overflow-x-auto -mx-6">
             <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 border-y border-slate-200">
+              <thead className="bg-neutral-50 border-y border-neutral-200">
                 <tr>
                   {['Murid', 'Kelas', 'Tarikh', 'Jenis', 'Objektif', 'Status', 'Susulan', 'Ringkasan', ''].map((h) => (
-                    <th key={h || 'act'} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
+                    <th key={h || 'act'} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-neutral-500">
                       {h}
                     </th>
                   ))}
@@ -332,8 +332,8 @@ export default function GBKCasesPage() {
                 {filtered.map((r) => {
                   const overdue = isCaseOverdue(r.case_status, r.tarikh_susulan)
                   return (
-                    <tr key={r.id} className={`hover:bg-slate-50/80 align-top ${overdue ? 'bg-rose-50/40' : ''}`}>
-                      <td className="px-4 py-3 font-semibold text-slate-900">
+                    <tr key={r.id} className={`hover:bg-neutral-50/80 align-top ${overdue ? 'bg-rose-50/40' : ''}`}>
+                      <td className="px-4 py-3 font-semibold text-neutral-900">
                         {r.student_name}
                         {overdue && (
                           <span className="ml-2 inline-flex items-center gap-0.5 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
@@ -341,10 +341,10 @@ export default function GBKCasesPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">{r.class_name || '—'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-slate-600">{r.session_date}</td>
-                      <td className="px-4 py-3 text-slate-600 capitalize">{r.intervention_type || '—'}</td>
-                      <td className="px-4 py-3 max-w-[180px] text-slate-600 line-clamp-2">{r.objective || '—'}</td>
+                      <td className="px-4 py-3 text-neutral-600">{r.class_name || '—'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-neutral-600">{r.session_date}</td>
+                      <td className="px-4 py-3 text-neutral-600 capitalize">{r.intervention_type || '—'}</td>
+                      <td className="px-4 py-3 max-w-[180px] text-neutral-600 line-clamp-2">{r.objective || '—'}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col gap-1.5">
                           <span
@@ -356,7 +356,7 @@ export default function GBKCasesPage() {
                             value={r.case_status}
                             disabled={savingId === r.id}
                             onChange={(e) => openStatusModal(r, e.target.value as CaseStatus)}
-                            className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600"
+                            className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-600"
                           >
                             {CASE_STATUS_ORDER.map((s) => (
                               <option key={s} value={s}>
@@ -366,10 +366,10 @@ export default function GBKCasesPage() {
                           </select>
                         </div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-600">
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-neutral-600">
                         {r.tarikh_susulan || '—'}
                       </td>
-                      <td className="px-4 py-3 max-w-[200px] text-xs text-slate-500 line-clamp-3">{r.summary || '—'}</td>
+                      <td className="px-4 py-3 max-w-[200px] text-xs text-neutral-500 line-clamp-3">{r.summary || '—'}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col gap-1.5">
                           <button
@@ -388,7 +388,7 @@ export default function GBKCasesPage() {
                               referral_to: r.referral_to,
                               counselor_name: r.counselor_name,
                             })}
-                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 px-2 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
                           >
                             <Printer size={14} />
                             Cetak
@@ -396,7 +396,7 @@ export default function GBKCasesPage() {
                           <button
                             type="button"
                             onClick={() => openHistory(r)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 px-2 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
                           >
                             <History size={14} />
                             History
@@ -432,16 +432,16 @@ export default function GBKCasesPage() {
         size="lg"
       >
         {historyLoading ? (
-          <p className="py-8 text-center text-sm text-slate-500">Memuatkan…</p>
+          <p className="py-8 text-center text-sm text-neutral-500">Memuatkan…</p>
         ) : historyLogs.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500">
+          <p className="py-8 text-center text-sm text-neutral-500">
             Belum ada perubahan status direkod. Tukar status untuk mula timeline.
           </p>
         ) : (
           <ul className="max-h-[60vh] space-y-3 overflow-y-auto">
             {historyLogs.map((log) => (
-              <li key={log.id} className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-sm">
-                <p className="font-semibold text-slate-800">
+              <li key={log.id} className="rounded-xl border border-neutral-100 bg-neutral-50/80 px-4 py-3 text-sm">
+                <p className="font-semibold text-neutral-800">
                   {formatStatusLogLine({
                     fromStatus: log.from_status,
                     toStatus: log.to_status,
@@ -451,17 +451,17 @@ export default function GBKCasesPage() {
                   })}
                 </p>
                 {log.tarikh_susulan && (
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-neutral-500">
                     Tarikh susulan: <strong>{log.tarikh_susulan}</strong>
                   </p>
                 )}
                 {log.agensi_rujukan && (
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-neutral-500">
                     Rujukan: <strong>{log.agensi_rujukan}</strong>
                   </p>
                 )}
                 {log.nota && (
-                  <p className="mt-2 text-xs leading-relaxed text-slate-600 whitespace-pre-wrap">{log.nota}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-neutral-600 whitespace-pre-wrap">{log.nota}</p>
                 )}
               </li>
             ))}
