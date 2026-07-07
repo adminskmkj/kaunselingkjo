@@ -36,10 +36,13 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {roles.map((r) => {
             const Icon = r.icon
+            const target = r.enabled ? '/login' : '/coming-soon'
             return (
-              <div
+              <button
                 key={r.title}
-                className={`card relative text-left transition ${r.enabled ? 'hover:-translate-y-0.5' : 'opacity-60'}`}
+                type="button"
+                onClick={() => router.push(target)}
+                className={`card relative text-left transition ${r.enabled ? 'hover:-translate-y-0.5' : 'opacity-60 hover:opacity-80'}`}
               >
                 <div className={`mb-4 inline-flex rounded-xl p-3 ${r.color} ${!r.enabled ? 'grayscale' : ''}`}>
                   <Icon size={22} strokeWidth={1.75} />
@@ -51,7 +54,7 @@ export default function Home() {
                     Coming Soon
                   </span>
                 )}
-              </div>
+              </button>
             )
           })}
         </div>
