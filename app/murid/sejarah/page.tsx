@@ -83,7 +83,7 @@ export default function SejarahRefleksiPage() {
               {rows.map((row) => (
                 <tr key={row.id}>
                   <td className="px-6 py-4 text-sm text-gray-900">{row.checkin_date}</td>
-                  <td className="px-6 py-4 text-sm font-semibold text-blue-600">{row.discipline_score == null ? '-' : `${row.discipline_score.toFixed(0)}%`}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-primary-600">{row.discipline_score == null ? '-' : `${row.discipline_score.toFixed(0)}%`}</td>
                   <td className="px-6 py-4 text-sm font-semibold text-violet-600">{row.emotional_score == null ? '-' : `${row.emotional_score.toFixed(0)}%`}</td>
                   <td className="px-6 py-4 text-sm capitalize text-gray-700">{row.q7_perasaan_emosi || '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{row.q9_tahap_stres ?? '-'}</td>

@@ -213,9 +213,9 @@ export default function IbuBapaPage() {
   }
 
   const addChildPanel = (
-    <div className="rounded-2xl border border-cyan-100 bg-cyan-50/40 p-5">
+    <div className="rounded-2xl border border-primary-100 bg-primary-50/40 p-5">
       <div className="mb-3 flex items-center gap-2">
-        <UserPlus size={20} className="text-cyan-700" />
+        <UserPlus size={20} className="text-primary-700" />
         <h2 className="text-sm font-black text-slate-900">Tambah anak (No. IC)</h2>
       </div>
       <p className="mb-3 text-xs text-slate-600">
@@ -365,7 +365,7 @@ export default function IbuBapaPage() {
     return (
       <PortalShell title="Portal Ibu Bapa">
         <div className="flex items-center justify-center py-24">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
         </div>
       </PortalShell>
     )
@@ -417,7 +417,7 @@ export default function IbuBapaPage() {
               onClick={() => setSelectedChildId(ch.id)}
               className={`rounded-2xl border px-4 py-2 text-sm font-bold transition ${
                 selectedChildId === ch.id
-                  ? 'border-cyan-600 bg-cyan-700 text-white'
+                  ? 'border-primary-600 bg-primary-700 text-white'
                   : 'border-slate-200 bg-white text-slate-700'
               }`}
             >
@@ -465,7 +465,7 @@ export default function IbuBapaPage() {
                 value: latestDisc ? `${latestDisc}%` : '—',
                 badge: latestDisc ? labelBaik(latestDisc) : '—',
                 icon: <BarChart2 className="text-white" size={20} />,
-                grad: 'from-blue-500 to-indigo-600',
+                grad: 'from-primary-500 to-indigo-600',
               },
               {
                 label: 'Ketepatan (Refleksi)',

@@ -26,7 +26,7 @@ type SessionsClient = {
 
 const statusStyle: Record<SessionRow['status'], string> = {
   pending: 'bg-yellow-100 text-yellow-700',
-  disahkan: 'bg-blue-100 text-blue-700',
+  disahkan: 'bg-primary-100 text-primary-700',
   selesai: 'bg-green-100 text-green-700',
   dibatalkan: 'bg-red-100 text-red-700',
 }

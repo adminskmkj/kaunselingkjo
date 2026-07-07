@@ -94,11 +94,11 @@ function SidebarNav({
             onClick={onNavigate}
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
               active
-                ? 'bg-cyan-500/15 text-cyan-50 ring-1 ring-cyan-400/25'
+                ? 'bg-primary-500/15 text-primary-50 ring-1 ring-primary-400/25'
                 : 'text-slate-300 hover:bg-white/5 hover:text-white'
             }`}
           >
-            <Icon size={18} strokeWidth={1.75} className={active ? 'text-cyan-300' : 'text-slate-400'} />
+            <Icon size={18} strokeWidth={1.75} className={active ? 'text-primary-300' : 'text-slate-400'} />
             <span className="truncate">{item.label}</span>
             <NavBadge count={badgeByHref[item.href] ?? 0} />
           </Link>
@@ -254,14 +254,14 @@ export function PortalShell({
         </header>
 
         <main className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8">
-          <header className="panel mb-6 border-l-4 border-l-cyan-600 md:mb-8">
+          <header className="panel mb-6 border-l-4 border-l-primary-600 md:mb-8">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <h1 className="text-balance">{title}</h1>
                 {subtitle && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base">{subtitle}</p>}
               </div>
               {role && (
-                <span className="inline-flex w-fit rounded-full bg-cyan-50 px-4 py-1.5 text-xs font-semibold text-cyan-800 ring-1 ring-cyan-200">
+                <span className="inline-flex w-fit rounded-full bg-primary-50 px-4 py-1.5 text-xs font-semibold text-primary-800 ring-1 ring-primary-200">
                   {roleLabels[role]}
                 </span>
               )}
@@ -291,7 +291,7 @@ export function StatCard({
   onClick?: () => void
 }) {
   const tones = {
-    blue: { chip: 'bg-cyan-50 text-cyan-700 ring-cyan-100', value: 'text-cyan-800', icon: 'bg-cyan-600' },
+    blue: { chip: 'bg-primary-50 text-primary-700 ring-primary-100', value: 'text-primary-800', icon: 'bg-primary-600' },
     green: { chip: 'bg-emerald-50 text-emerald-700 ring-emerald-100', value: 'text-emerald-800', icon: 'bg-emerald-600' },
     orange: { chip: 'bg-amber-50 text-amber-800 ring-amber-100', value: 'text-amber-900', icon: 'bg-amber-500' },
     red: { chip: 'bg-rose-50 text-rose-700 ring-rose-100', value: 'text-rose-800', icon: 'bg-rose-600' },
@@ -306,7 +306,7 @@ export function StatCard({
           <p className={`inline-flex rounded-lg px-2 py-0.5 text-xs font-semibold ring-1 ${t.chip}`}>{label}</p>
           <p className={`mt-3 text-3xl font-bold tracking-tight ${t.value}`}>{value}</p>
           {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
-          {onClick && <p className="mt-2 text-xs font-medium text-cyan-600">Ketik untuk senarai murid</p>}
+          {onClick && <p className="mt-2 text-xs font-medium text-primary-600">Ketik untuk senarai murid</p>}
         </div>
         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-md ${t.icon}`}>
           {icon}
@@ -320,7 +320,7 @@ export function StatCard({
       <button
         type="button"
         onClick={onClick}
-        className="panel w-full text-left transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(15,23,42,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+        className="panel w-full text-left transition hover:-translate-y-0.5 hover:shadow-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
       >
         {inner}
       </button>

@@ -13,7 +13,7 @@ type CheckinHistory = { checkin_date: string; discipline_score: number | null; e
 type Badge = { id: string; badge_name: string; icon: string | null }
 
 const quickLinks = [
-  { icon: <TrendingUp size={22} />, label: 'Sejarah Refleksi', path: '/murid/sejarah', bg: 'bg-cyan-600' },
+  { icon: <TrendingUp size={22} />, label: 'Sejarah Refleksi', path: '/murid/sejarah', bg: 'bg-primary-600' },
   { icon: <Trophy size={22} />, label: 'Lencana Saya', path: '/murid/lencana', bg: 'bg-amber-500' },
   { icon: <Heart size={22} />, label: 'Reach Out GBK', path: '/murid/reach-out', bg: 'bg-rose-600' },
   { icon: <CalendarCheck size={22} />, label: 'Sesi Kaunseling', path: '/murid/sesi', bg: 'bg-emerald-600' },
@@ -77,7 +77,7 @@ export default function MuridDashboard() {
   if (authLoading || loading) return (
     <PortalShell title="Dashboard Murid">
       <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
       </div>
     </PortalShell>
   )
@@ -98,7 +98,7 @@ export default function MuridDashboard() {
         {[
           { icon: <Flame size={20} />, label: 'Streak Harian', value: `${points?.current_streak ?? 0} hari`, sub: `Rekod: ${points?.longest_streak ?? 0} hari`, bg: 'bg-orange-500' },
           { icon: <Star size={20} />, label: 'Jumlah Mata', value: points?.total_points ?? 0, sub: 'Dikumpul setakat ini', bg: 'bg-amber-500' },
-          { icon: <BarChart2 size={20} />, label: 'Skor Disiplin', value: `${avgDisc}%`, sub: 'Purata 7 hari', bg: 'bg-cyan-600' },
+          { icon: <BarChart2 size={20} />, label: 'Skor Disiplin', value: `${avgDisc}%`, sub: 'Purata 7 hari', bg: 'bg-primary-600' },
           { icon: <Heart size={20} />, label: 'Skor Emosi', value: `${avgEmo}%`, sub: 'Purata 7 hari', bg: 'bg-slate-600' },
           { icon: <Trophy size={20} />, label: 'Lencana', value: badges.length, sub: 'Pencapaian diperoleh', bg: 'bg-emerald-600' },
         ].map((k) => (
@@ -120,7 +120,7 @@ export default function MuridDashboard() {
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-base font-black text-slate-900">Trend Skor Disiplin (7 Hari)</h2>
-                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{avgDisc}% purata</span>
+                <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">{avgDisc}% purata</span>
               </div>
               {history.length === 0 ? (
                 <p className="py-4 text-center text-sm text-slate-400">Belum ada rekod.</p>
@@ -128,7 +128,7 @@ export default function MuridDashboard() {
                 <div className="flex items-end gap-2 h-24">
                   {[...history].reverse().map((h, i) => {
                     const pct = Math.round(h.discipline_score ?? 0)
-                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
+                    const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-primary-500' : pct >= 40 ? 'bg-amber-400' : 'bg-rose-500'
                     return (
                       <div key={`d-${i}`} className="flex flex-1 flex-col items-center gap-1">
                         <span className="text-[10px] font-bold text-slate-600">{pct}%</span>
@@ -169,7 +169,7 @@ export default function MuridDashboard() {
           <div className="overflow-hidden rounded-[1.5rem] bg-white p-6 shadow-xl shadow-slate-200/60">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-black text-slate-900">Lencana & Pencapaian</h2>
-              <button onClick={() => router.push('/murid/lencana')} className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800">
+              <button onClick={() => router.push('/murid/lencana')} className="flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-blue-800">
                 Lihat semua <ArrowRight size={14} />
               </button>
             </div>
@@ -215,7 +215,7 @@ export default function MuridDashboard() {
             <button
               onClick={() => router.push('/murid/refleksi')}
               disabled={!!todayCheckin}
-              className="mt-5 w-full rounded-2xl bg-cyan-500 py-3 text-sm font-bold text-white transition hover:bg-cyan-400 disabled:opacity-50"
+              className="mt-5 w-full rounded-2xl bg-primary-500 py-3 text-sm font-bold text-white transition hover:bg-primary-400 disabled:opacity-50"
             >
               {todayCheckin ? '✓ Sudah Selesai Hari Ini' : 'Mula Refleksi Sekarang'}
             </button>

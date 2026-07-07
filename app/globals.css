@@ -3,15 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --background: #eef2f6;
-  --foreground: #0f172a;
-  --sidebar: #0b1220;
+  --background: #faf9f7;
+  --foreground: #1a1814;
+  --sidebar: #253930;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --accent: #0891b2;
-  --accent-soft: #ecfeff;
+  --accent: #3d6653;
+  --accent-soft: #f3f7f4;
+  --honey: #ef9220;
+  --honey-soft: #fef9ee;
   --card: #ffffff;
-  --muted: #64748b;
-  --ring: rgba(8, 145, 178, 0.35);
+  --muted: #82776a;
+  --ring: rgba(61, 102, 83, 0.3);
 }
 
 body {
@@ -24,37 +26,37 @@ body {
 
 @layer base {
   * {
-    @apply border-slate-200/80;
+    @apply border-neutral-200/80;
   }
 
   h1 {
-    @apply text-2xl font-bold tracking-tight text-slate-900 md:text-3xl;
+    @apply text-2xl font-bold tracking-tight text-neutral-900 md:text-3xl;
   }
 
   h2 {
-    @apply text-lg font-semibold tracking-tight text-slate-900 md:text-xl;
+    @apply text-lg font-semibold tracking-tight text-neutral-900 md:text-xl;
   }
 
   h3 {
-    @apply text-base font-semibold text-slate-900;
+    @apply text-base font-semibold text-neutral-900;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply rounded-xl bg-cyan-700 px-6 py-3 font-semibold text-white shadow-sm transition active:scale-[0.98] hover:bg-cyan-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply rounded-xl bg-primary-600 px-6 py-3 font-semibold text-white shadow-soft transition active:scale-[0.98] hover:bg-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply rounded-xl border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition active:scale-[0.98] hover:border-cyan-200 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600;
+    @apply rounded-xl border border-neutral-200 bg-white px-6 py-3 font-semibold text-neutral-700 shadow-soft transition active:scale-[0.98] hover:border-primary-300 hover:bg-primary-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600;
   }
 
   .btn-ghost {
-    @apply rounded-lg px-4 py-2 font-medium text-slate-600 transition hover:bg-slate-100;
+    @apply rounded-lg px-4 py-2 font-medium text-neutral-600 transition hover:bg-neutral-100;
   }
 
   .input-field {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 transition placeholder:text-slate-400 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/25;
+    @apply w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 transition placeholder:text-neutral-400 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400/20;
   }
 
   .input {
@@ -62,25 +64,39 @@ body {
   }
 
   .card {
-    @apply rounded-2xl border border-slate-100 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.06)];
+    @apply rounded-2xl border border-neutral-100 bg-white p-6 shadow-soft;
   }
 
   .panel {
-    @apply rounded-2xl border border-slate-100/80 bg-white p-5 shadow-[0_4px_24px_rgba(15,23,42,0.05)] md:p-6;
+    @apply rounded-2xl border border-neutral-100/80 bg-white p-5 shadow-soft md:p-6;
   }
 
   .auth-shell {
-    @apply relative min-h-[100dvh] overflow-hidden bg-[#e8eef4];
+    @apply relative min-h-[100dvh] overflow-hidden bg-[#f3f7f4];
   }
 
+  /* Micrographic: dot pattern + soft gradient blobs */
   .auth-shell::before {
     content: "";
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse 80% 50% at 10% 0%, rgba(8, 145, 178, 0.12), transparent 55%),
-      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(15, 23, 42, 0.06), transparent 50%);
+      radial-gradient(circle, rgba(79, 128, 104, 0.07) 1px, transparent 1px),
+      radial-gradient(ellipse 80% 50% at 10% 0%, rgba(61, 102, 83, 0.08), transparent 55%),
+      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(239, 146, 32, 0.06), transparent 50%);
+    background-size: 24px 24px, 100% 100%, 100% 100%;
     pointer-events: none;
+  }
+
+  /* Micrographic dot background utility */
+  .bg-microdots {
+    background-image: radial-gradient(circle, rgba(79, 128, 104, 0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .bg-microdots-honey {
+    background-image: radial-gradient(circle, rgba(239, 146, 32, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 }
 

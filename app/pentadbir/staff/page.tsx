@@ -134,7 +134,7 @@ export default function StaffPage() {
     return (
       <PortalShell title="Pengurusan Staff">
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
         </div>
       </PortalShell>
     )
@@ -160,7 +160,7 @@ export default function StaffPage() {
       </div>
 
       {showForm && (
-        <div className="mb-6 rounded-2xl border border-cyan-100 bg-cyan-50/40 p-5">
+        <div className="mb-6 rounded-2xl border border-primary-100 bg-primary-50/40 p-5">
           <h3 className="mb-4 text-sm font-black text-slate-900">Akaun Staff Baru</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>

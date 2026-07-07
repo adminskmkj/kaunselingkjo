@@ -144,14 +144,14 @@ export default function RefleksiPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     )
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-indigo-100">
         <div className="text-center">
           <div className="text-6xl mb-4">✅</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Terima Kasih!</h2>
@@ -176,7 +176,7 @@ export default function RefleksiPage() {
             onClick={() => setAnswer(questionKey, v)}
             className={`flex-1 p-3 rounded-lg border-2 transition-all ${
               value === v
-                ? 'border-blue-500 bg-blue-50 shadow-md'
+                ? 'border-primary-500 bg-primary-50 shadow-md'
                 : 'border-gray-200 hover:border-blue-300 bg-white'
             }`}
           >
@@ -198,7 +198,7 @@ export default function RefleksiPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-indigo-100 py-8">
       <div className="max-w-3xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-xl p-8">
           <div className="mb-8 text-center">
@@ -271,7 +271,7 @@ export default function RefleksiPage() {
               <button
                 type="submit"
                 disabled={loading || !allAnswered}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
               >
                 {loading ? 'Menyimpan...' : 'Hantar Refleksi'}
               </button>

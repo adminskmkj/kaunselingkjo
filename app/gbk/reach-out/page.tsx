@@ -186,7 +186,7 @@ export default function GBKReachOutPage() {
             type="button"
             onClick={() => setFilter(f)}
             className={`rounded-full px-4 py-1.5 text-xs font-bold ${
-              filter === f ? 'bg-cyan-700 text-white' : 'bg-white border border-slate-200 text-slate-600'
+              filter === f ? 'bg-primary-700 text-white' : 'bg-white border border-slate-200 text-slate-600'
             }`}
           >
             {f === 'baru' ? 'Aktif (Baru/Dibaca)' : 'Semua'}

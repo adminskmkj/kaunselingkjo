@@ -35,7 +35,7 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         <div className="card">
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-700 text-2xl font-bold text-white shadow-md">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-700 text-2xl font-bold text-white shadow-md">
               S
             </div>
             <h1 className="text-2xl font-bold text-slate-900">S.T.A.R KJo</h1>

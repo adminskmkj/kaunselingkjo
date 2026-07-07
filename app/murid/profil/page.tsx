@@ -14,7 +14,7 @@ export default function ProfilMuridPage() {
           <div><dt className="text-sm text-gray-500">ID Murid</dt><dd className="font-semibold text-gray-900">{profile?.ic_or_student_id}</dd></div>
           <div><dt className="text-sm text-gray-500">Role</dt><dd className="font-semibold text-gray-900">{profile?.role}</dd></div>
         </dl>
-        <button className="mt-6 rounded-lg bg-blue-600 px-5 py-2 font-medium text-white hover:bg-blue-700">Tukar Kata Laluan</button>
+        <button className="mt-6 rounded-lg bg-primary-600 px-5 py-2 font-medium text-white hover:bg-primary-700">Tukar Kata Laluan</button>
       </div>
     </PortalShell>
   )

@@ -87,7 +87,7 @@ export default function AuditPage() {
     return (
       <PortalShell title="Log Audit">
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
         </div>
       </PortalShell>
     )
@@ -126,7 +126,7 @@ export default function AuditPage() {
 
       <div className="rounded-2xl bg-white p-4 shadow">
         <div className="mb-3 flex items-center gap-2">
-          <Shield size={18} className="text-cyan-700" />
+          <Shield size={18} className="text-primary-700" />
           <h2 className="text-sm font-black text-slate-900">{filtered.length} rekod</h2>
         </div>
 
