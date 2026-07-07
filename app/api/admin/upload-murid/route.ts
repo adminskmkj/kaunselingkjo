@@ -29,6 +29,14 @@ type StudentData = {
   ic_6_digit: string
   class_name: string
   email: string
+  guardian1_name: string | null
+  guardian1_ic: string | null
+  guardian1_relationship: string | null
+  guardian1_phone: string | null
+  guardian2_name: string | null
+  guardian2_ic: string | null
+  guardian2_relationship: string | null
+  guardian2_phone: string | null
 }
 
 function parseExcel(buffer: Buffer): StudentData[] {
@@ -61,12 +69,30 @@ function parseExcel(buffer: Buffer): StudentData[] {
     const ic6 = cleanIC(icFull)
     if (!ic6 || ic6.length < 12) continue
 
+    const guardianIc = (icCol: string, jenisCol: string) => {
+      const jenis = String(row[jenisCol] || '').trim().toUpperCase()
+      if (jenis !== 'KAD PENGENALAN') return null
+      return cleanIC(String(row[icCol] || ''))
+    }
+    const textOrNull = (col: string) => {
+      const v = String(row[col] || '').trim()
+      return v ? v : null
+    }
+
     students.push({
       full_name: nama,
       ic_full: icFull,
       ic_6_digit: ic6,
       class_name: buildClassName(tingkatan, kelas),
       email: `${ic6}@student.skmkj.edu.my`,
+      guardian1_name: textOrNull('PENJAGA 1'),
+      guardian1_ic: guardianIc('NO. PENGENALAN PENJAGA 1', 'JNS. PENGENALAN PENJAGA 1'),
+      guardian1_relationship: textOrNull('HUBUNGAN PENJAGA 1'),
+      guardian1_phone: textOrNull('NO. TEL. BIMBIT PENJAGA 1'),
+      guardian2_name: textOrNull('PENJAGA 2'),
+      guardian2_ic: guardianIc('NO. PENGENALAN PENJAGA 2', 'JNS. PENGENALAN PENJAGA 2'),
+      guardian2_relationship: textOrNull('HUBUNGAN PENJAGA 2'),
+      guardian2_phone: textOrNull('NO. TEL. BIMBIT PENJAGA 2'),
     })
   }
 
@@ -181,12 +207,49 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Sync guardian registry (dipakai untuk sahkan pautan ibu bapa - lihat 019).
+    // Upsert ikut student_ic supaya boleh re-run setiap bulan bila fail KPM baru.
+    let guardiansSynced = 0
+    let guardianErrors = 0
+    const guardianRows = excelStudents.map((s) => ({
+      student_kpm_id: s.ic_6_digit, // KPM ID tak dihantar oleh parseExcel; IC penuh cukup sebagai kunci unik
+      student_name: s.full_name,
+      student_ic: s.ic_full.replace(/[^0-9]/g, ''),
+      class_name: s.class_name,
+      guardian1_name: s.guardian1_name,
+      guardian1_ic: s.guardian1_ic,
+      guardian1_relationship: s.guardian1_relationship,
+      guardian1_phone: s.guardian1_phone,
+      guardian2_name: s.guardian2_name,
+      guardian2_ic: s.guardian2_ic,
+      guardian2_relationship: s.guardian2_relationship,
+      guardian2_phone: s.guardian2_phone,
+      imported_at: new Date().toISOString(),
+    }))
+
+    const BATCH = 200
+    for (let i = 0; i < guardianRows.length; i += BATCH) {
+      const chunk = guardianRows.slice(i, i + BATCH)
+      const { error: gErr, count } = await supabase
+        .from('kpm_guardian_registry')
+        .upsert(chunk, { onConflict: 'student_ic', count: 'exact' })
+
+      if (gErr) {
+        console.error('Guardian registry upsert error:', gErr.message)
+        guardianErrors += chunk.length
+      } else {
+        guardiansSynced += count ?? chunk.length
+      }
+    }
+
     return NextResponse.json({
       success: true,
       created,
       updated,
       errors,
       total: excelStudents.length,
+      guardians_synced: guardiansSynced,
+      guardian_errors: guardianErrors,
     })
   } catch (err) {
     console.error('Upload error:', err)

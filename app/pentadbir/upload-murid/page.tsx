@@ -60,7 +60,7 @@ export default function AdminUploadMuridPage() {
       setResult({
         success: data.created + data.updated,
         errors: data.errors || 0,
-        message: `✅ ${data.created} murid baru, ${data.updated} dikemaskini, ${data.errors || 0} ralat`,
+        message: `✅ ${data.created} murid baru, ${data.updated} dikemaskini, ${data.errors || 0} ralat • 👪 ${data.guardians_synced ?? 0} rekod penjaga disegerakkan${data.guardian_errors ? ` (${data.guardian_errors} ralat penjaga)` : ''}`,
       })
     } catch (err) {
       setResult({

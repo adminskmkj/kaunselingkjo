@@ -12,7 +12,7 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "S.T.A.R KJo - Student Tracker Attitude Report",
   description:
-    "Sistem pemantauan tingkah laku dan intervensi awal murid SMK Kampung Jawa",
+    "Sistem pemantauan tingkah laku dan intervensi awal murid SK Mohd Khir Johari",
 };
 
 export default function RootLayout({

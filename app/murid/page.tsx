@@ -92,7 +92,7 @@ export default function MuridDashboard() {
     : 0
 
   return (
-    <PortalShell title="Dashboard Murid" subtitle="Pantau perkembangan dan refleksi harian anda">
+    <PortalShell title="Dashboard Murid" subtitle="Rekod Perkembangan Murid anda">
       {/* KPI */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
         {[

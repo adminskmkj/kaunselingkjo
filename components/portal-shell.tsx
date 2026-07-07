@@ -155,7 +155,7 @@ export function PortalShell({
             </div>
             <div className="min-w-0">
               <p className="truncate text-base font-bold tracking-tight text-white">S.T.A.R KJo</p>
-              <p className="truncate text-xs text-slate-400">SMK Kampung Jawa</p>
+              <p className="truncate text-xs text-slate-400">SK Mohd Khir Johari</p>
             </div>
           </Link>
         </div>

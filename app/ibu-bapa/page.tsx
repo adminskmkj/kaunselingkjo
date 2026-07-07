@@ -321,7 +321,7 @@ export default function IbuBapaPage() {
   }
 
   return (
-    <PortalShell title="Portal Ibu Bapa" subtitle="Pantau perkembangan anak — data daripada refleksi & rekod sekolah">
+    <PortalShell title="Portal Ibu Bapa" subtitle="Pemantauan Rekod Perkembangan Murid — data daripada refleksi & rekod sekolah">
       {/* Header mockup-style */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-white px-5 py-4 shadow-sm">
         <div>

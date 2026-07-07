@@ -7,10 +7,9 @@ export default function Home() {
   const router = useRouter()
 
   const roles = [
-    { icon: GraduationCap, title: 'Murid', desc: 'Refleksi harian & perkembangan diri', color: 'text-cyan-700 bg-cyan-50' },
-    { icon: Compass, title: 'GBK', desc: 'Intervensi awal & pemantauan risiko', color: 'text-emerald-700 bg-emerald-50' },
-    { icon: Users, title: 'Guru', desc: 'Catatan tingkah laku & kelas', color: 'text-slate-700 bg-slate-100' },
-    { icon: HomeIcon, title: 'Ibu Bapa', desc: 'Pantau perkembangan anak', color: 'text-amber-800 bg-amber-50' },
+    { icon: GraduationCap, title: 'Murid', desc: 'Rekod Perkembangan Murid', color: 'text-cyan-700 bg-cyan-50' },
+    { icon: Compass, title: 'GBK', desc: 'Intervensi Bimbingan dan Kaunseling', color: 'text-emerald-700 bg-emerald-50' },
+    { icon: HomeIcon, title: 'Ibu Bapa', desc: 'Pemantauan Rekod Perkembangan Murid', color: 'text-amber-800 bg-amber-50' },
   ]
 
   return (
@@ -23,7 +22,7 @@ export default function Home() {
           <h1 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">S.T.A.R KJo</h1>
           <p className="text-lg font-medium text-slate-600">Student Tracker Attitude Report</p>
           <p className="mx-auto max-w-xl text-sm leading-relaxed text-slate-500 md:text-base">
-            Sistem pemantauan tingkah laku dan intervensi awal murid SMK Kampung Jawa
+            Sistem pemantauan tingkah laku dan intervensi awal murid SK Mohd Khir Johari
           </p>
         </div>
 
@@ -49,7 +48,7 @@ export default function Home() {
 
         <footer className="border-t border-slate-200/80 pt-8 text-sm text-slate-500">
           <p className="font-medium text-slate-600">STEM & TVET : Pemacu Aspirasi Kerjaya Digital Generasi Madani</p>
-          <p className="mt-1 text-xs">SMK Kampung Jawa · JBA1010</p>
+          <p className="mt-1 text-xs">SK Mohd Khir Johari · JBA1010</p>
         </footer>
       </div>
     </div>
