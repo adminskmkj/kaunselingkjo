@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { GraduationCap, Compass, Users, Home as HomeIcon, ArrowRight } from 'lucide-react'
 
 export default function Home() {
@@ -16,8 +17,8 @@ export default function Home() {
     <div className="auth-shell flex flex-col items-center justify-center p-6 md:p-10">
       <div className="relative z-10 w-full max-w-4xl space-y-10 text-center">
         <div className="space-y-4">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-cyan-700 text-3xl font-bold text-white shadow-lg shadow-cyan-900/25">
-            S
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-lg shadow-cyan-900/25 overflow-hidden">
+            <Image src="/logo-sekolah.png" alt="Logo SK Mohd Khir Johari" width={72} height={72} className="object-contain" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">S.T.A.R KJo</h1>
           <p className="text-lg font-medium text-slate-600">Student Tracker Attitude Report</p>

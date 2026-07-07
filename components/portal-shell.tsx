@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import {
@@ -150,8 +151,8 @@ export function PortalShell({
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[17.5rem] flex-col border-r border-[var(--sidebar-border)] bg-[var(--sidebar)] lg:flex">
         <div className="border-b border-[var(--sidebar-border)] px-5 py-5">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-600 text-lg font-bold text-white shadow-lg shadow-cyan-900/40">
-              S
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-lg overflow-hidden">
+              <Image src="/logo-sekolah.png" alt="Logo" width={40} height={40} className="object-contain" />
             </div>
             <div className="min-w-0">
               <p className="truncate text-base font-bold tracking-tight text-white">S.T.A.R KJo</p>
