@@ -34,12 +34,24 @@ type InterventionForm = {
   parent_note: string
 }
 
+type SessionRow = {
+  id: string
+  student_id: string
+  student_name: string
+  class_name: string | null
+  session_date: string
+  session_time: string
+  purpose: string | null
+  status: string
+}
+
 export default function GBKDashboardPage() {
   const router = useRouter()
   const { profile, loading: authLoading } = useAuth()
   const { counts: reachBadges } = useReachOutBadges(profile?.role, profile?.id)
   const [students, setStudents] = useState<StudentRisk[]>([])
   const [openCaseStudentIds, setOpenCaseStudentIds] = useState<Set<string>>(new Set())
+  const [pendingSessions, setPendingSessions] = useState<SessionRow[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [riskListLevel, setRiskListLevel] = useState<RiskLevel | null>(null)
@@ -111,6 +123,49 @@ export default function GBKDashboardPage() {
         ((openCases || []) as { student_id: string }[]).map((c) => c.student_id)
       )
       setOpenCaseStudentIds(triaged)
+
+      // Fetch pending counseling sessions (murid tempah, belum disahkan)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: sessions, error: sessErr } = await (supabase as any)
+        .from('counseling_sessions')
+        .select('id, student_id, session_date, session_time, purpose, status')
+        .eq('status', 'pending')
+        .order('session_date', { ascending: true })
+
+      if (sessErr) throw sessErr
+
+      // Map student names
+      const sessionStudentIds = ((sessions || []) as { student_id: string }[]).map((s) => s.student_id)
+      let sessionProfileMap = new Map<string, { full_name: string; class_name: string | null }>()
+      if (sessionStudentIds.length > 0) {
+        const { data: sessProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, class_name')
+          .in('id', sessionStudentIds)
+        sessionProfileMap = new Map(
+          ((sessProfiles || []) as { id: string; full_name: string; class_name: string | null }[]).map((p) => [
+            p.id,
+            { full_name: p.full_name, class_name: p.class_name },
+          ])
+        )
+      }
+
+      const sessionRows: SessionRow[] = ((sessions || []) as {
+        id: string
+        student_id: string
+        session_date: string
+        session_time: string
+        purpose: string | null
+        status: string
+      }[]).map((s) => {
+        const p = sessionProfileMap.get(s.student_id)
+        return {
+          ...s,
+          student_name: p?.full_name || 'Unknown',
+          class_name: p?.class_name || null,
+        }
+      })
+      setPendingSessions(sessionRows)
 
       // Get recent checkins (last 14 days)
       const fourteenDaysAgo = new Date()
@@ -258,6 +313,20 @@ export default function GBKDashboardPage() {
     setShowModal(true)
   }
 
+  async function confirmSession(sessionId: string, action: 'disahkan' | 'dibatalkan') {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
+        .from('counseling_sessions')
+        .update({ status: action })
+        .eq('id', sessionId)
+      if (error) throw error
+      await fetchStudents()
+    } catch (e) {
+      alert('Gagal: ' + (e instanceof Error ? e.message : ''))
+    }
+  }
+
   const handleSubmitIntervention = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
@@ -338,6 +407,62 @@ export default function GBKDashboardPage() {
           onClick={() => openRiskList('merah')}
         />
       </div>
+
+      {/* Pending Counseling Sessions */}
+      {pendingSessions.length > 0 && (
+        <section className="card mb-8 border-l-4 border-l-cyan-500">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-neutral-900">
+              Permohonan Sesi Kaunseling ({pendingSessions.length})
+            </h2>
+            <span className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-bold text-cyan-700">Menunggu Pengesahan</span>
+          </div>
+          <div className="overflow-x-auto -mx-6">
+            <table className="min-w-full">
+              <thead className="bg-neutral-50 border-y border-neutral-200">
+                <tr>
+                  {['Murid', 'Kelas', 'Tarikh', 'Masa', 'Tujuan', 'Tindakan'].map((h) => (
+                    <th key={h} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-600">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {pendingSessions.map((s) => (
+                  <tr key={s.id} className="hover:bg-neutral-50">
+                    <td className="px-6 py-4 font-semibold text-neutral-900">{s.student_name}</td>
+                    <td className="px-6 py-4 text-sm text-neutral-600">{s.class_name || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-neutral-600">
+                      {new Date(s.session_date).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-neutral-600">{s.session_time}</td>
+                    <td className="px-6 py-4 text-sm text-neutral-600 max-w-xs truncate" title={s.purpose || ''}>
+                      {s.purpose || '—'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => confirmSession(s.id, 'disahkan')}
+                          className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+                        >
+                          Sahkan
+                        </button>
+                        <button
+                          onClick={() => confirmSession(s.id, 'dibatalkan')}
+                          className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100"
+                        >
+                          Batal
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {/* Students Table */}
       <section className="card">
