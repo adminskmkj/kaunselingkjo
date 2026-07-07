@@ -85,7 +85,7 @@ export default function LencanaPage() {
             const earnedAt = earned.get(badge.id)
             return (
               <div key={badge.id} className={`rounded-lg border bg-white p-6 text-center shadow ${earnedAt ? 'border-yellow-200' : 'border-gray-200 opacity-70'}`}>
-                <div className="mb-3 text-5xl">{badge.icon_url ? '🏅' : '🏅'}</div>
+                <div className="mb-3 text-5xl">{badge.icon_url || '🏅'}</div>
                 <h2 className="text-lg font-bold text-gray-900">{badge.name}</h2>
                 <p className="mt-2 text-sm text-gray-600">{badge.description || badge.criteria || 'Tiada keterangan.'}</p>
                 <span className={`mt-4 inline-block rounded-full px-3 py-1 text-xs font-medium ${earnedAt ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
