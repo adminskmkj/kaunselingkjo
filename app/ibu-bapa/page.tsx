@@ -79,7 +79,7 @@ function Stars({ n }: { n: number }) {
 
 export default function IbuBapaPage() {
   const router = useRouter()
-  const { profile, loading: authLoading } = useAuth()
+  const { profile, loading: authLoading, refreshProfile } = useAuth()
   const [children, setChildren] = useState<ChildRow[]>([])
   const [selectedChildId, setSelectedChildId] = useState('')
   const [checkins, setCheckins] = useState<CheckinRow[]>([])
@@ -94,10 +94,76 @@ export default function IbuBapaPage() {
   const [linkIc, setLinkIc] = useState('')
   const [linking, setLinking] = useState(false)
   const [linkMessage, setLinkMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  // ponytail: ic_number ditambah migration 017 tapi database.types.ts belum diregen
+  const [myIc, setMyIc] = useState((profile as { ic_number?: string | null } | null)?.ic_number || '')
+  const [savingIc, setSavingIc] = useState(false)
+  const [icMessage, setIcMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   function normalizeIcInput(raw: string) {
     return raw.replace(/\D/g, '').slice(0, 12)
   }
+
+  async function saveMyIc() {
+    const ic = normalizeIcInput(myIc)
+    if (ic.length !== 12) {
+      setIcMessage({ type: 'err', text: 'Masukkan No. IC anda sendiri (12 digit).' })
+      return
+    }
+    setSavingIc(true)
+    setIcMessage(null)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
+        .from('profiles')
+        .update({ ic_number: ic })
+        .eq('id', profile!.id)
+      if (error) throw error
+      setIcMessage({ type: 'ok', text: 'No. IC disimpan. Kini anda boleh paut anak.' })
+      // ponytail: refresh profile agar guard lain nampak IC terkini
+      await refreshProfile()
+    } catch (e) {
+      console.error(e)
+      setIcMessage({ type: 'err', text: 'Gagal simpan No. IC.' })
+    } finally {
+      setSavingIc(false)
+    }
+  }
+
+  const myIcPanel = (profile as { ic_number?: string | null } | null)?.ic_number ? null : (
+    <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-5">
+      <div className="mb-3 flex items-center gap-2">
+        <User size={20} className="text-amber-700" />
+        <h2 className="text-sm font-black text-slate-900">Profil Saya — No. IC</h2>
+      </div>
+      <p className="mb-3 text-xs text-slate-600">
+        Isi No. Kad Pengenalan akaun ibu bapa anda sendiri (12 digit). Diperlukan sebelum memaut anak.
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <input
+          type="text"
+          inputMode="numeric"
+          value={myIc}
+          onChange={(e) => setMyIc(normalizeIcInput(e.target.value))}
+          placeholder="Contoh: 750512014567"
+          className="input font-mono text-sm tracking-wide"
+          maxLength={12}
+        />
+        <button
+          type="button"
+          onClick={saveMyIc}
+          disabled={savingIc || myIc.length !== 12}
+          className="btn-primary shrink-0 px-6"
+        >
+          {savingIc ? 'Menyimpan...' : 'Simpan IC'}
+        </button>
+      </div>
+      {icMessage && (
+        <p className={`mt-2 text-xs font-semibold ${icMessage.type === 'ok' ? 'text-emerald-700' : 'text-rose-600'}`}>
+          {icMessage.text}
+        </p>
+      )}
+    </div>
+  )
 
   async function linkChildByIc() {
     if (profile?.role !== 'parent') {
@@ -314,6 +380,7 @@ export default function IbuBapaPage() {
             <h2 className="mt-4 text-xl font-black text-slate-900">Paut anak anda</h2>
             <p className="mt-2 text-sm text-slate-500">Tiada anak dipautkan lagi. Gunakan No. IC murid di bawah.</p>
           </div>
+          {myIcPanel}
           {addChildPanel}
         </div>
       </PortalShell>
@@ -338,7 +405,7 @@ export default function IbuBapaPage() {
         </div>
       </div>
 
-      <div className="mb-6">{addChildPanel}</div>
+      <div className="mb-6">{myIcPanel || addChildPanel}</div>
 
       <div className="mb-4">
         <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Pilih anak untuk paparan</p>
