@@ -92,7 +92,22 @@ export default function MuridDashboard() {
     : 0
 
   return (
-    <PortalShell title="Dashboard Murid" subtitle="Rekod Perkembangan Murid anda">
+    <PortalShell title="Dashboard Murid" subtitle="Rekod perkembangan, refleksi harian & lencana anda">
+      {!todayCheckin && (
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-bold text-amber-900">Refleksi hari ini belum diisi</p>
+            <p className="text-xs text-amber-800/80">Isi sekarang untuk kekalkan streak &amp; kumpul mata.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push('/murid/refleksi')}
+            className="btn-primary shrink-0 px-4 py-2 text-sm"
+          >
+            Isi refleksi
+          </button>
+        </div>
+      )}
       {/* KPI */}
       <div className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         {[

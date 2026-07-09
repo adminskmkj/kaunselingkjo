@@ -12,6 +12,8 @@
     "upload-murid": "node scripts/upload-murid.js",
     "cleanup-students": "node scripts/cleanup-students.js",
     "create-staff": "node scripts/create-staff.js",
+    "import-staff": "node scripts/import-staff.js",
+    "export-slips": "node scripts/export-password-slips.js",
     "ensure-profile": "node scripts/ensure-user-profile.js",
     "repair-profiles": "node scripts/repair-orphan-profiles.js"
   },

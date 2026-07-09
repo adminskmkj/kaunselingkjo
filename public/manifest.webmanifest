@@ -1,0 +1,25 @@
+{
+  "name": "S.T.A.R KJo",
+  "short_name": "STAR KJo",
+  "description": "Student Tracker Attitude Report — SK Mohd Khir Johari",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#253930",
+  "orientation": "portrait-primary",
+  "lang": "ms",
+  "icons": [
+    {
+      "src": "/logo-sekolah.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-sekolah.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

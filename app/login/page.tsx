@@ -90,6 +90,9 @@ export default function LoginPage() {
                 required
                 autoComplete="username"
               />
+              <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-400">
+                <b>Murid:</b> No. IC 12 digit · <b>GBK/Guru:</b> e-mel sekolah · <b>Ibu bapa:</b> e-mel daftar
+              </p>
             </div>
 
             <div>

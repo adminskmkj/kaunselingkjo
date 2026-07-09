@@ -16,6 +16,10 @@ Lepas 008, refleksi/checkin baharu akan auto update `risk_levels` aktif untuk da
 Lepas 009, policy RLS lama yang terlalu longgar diketatkan dan direct user-write ke `points_tracker` ditutup.
 Lepas 010, skor disiplin/emosi berasingan; risk GBK ikut **emosi** (bukan skor gabungan).
 
+Juga pastikan migration portal guru dijalankan bila perlu:
+
+- `supabase/migrations/026_staff_view_risk_levels.sql` — guru/disiplin boleh **baca** `risk_levels` (read-only) untuk dashboard `/guru`.
+
 ## 2. Backfill profile lama
 
 Untuk repair Auth user lama yang tiada row `profiles`:
@@ -46,6 +50,34 @@ Script akan:
 - create/update Supabase Auth user
 - set `user_metadata.role`
 - upsert row `profiles`
+
+## 3b. Import staff / guru kelas dari CSV
+
+Template: `scripts/templates/staff.csv`
+
+```bash
+# Edit CSV (email, nama, role, class_name)
+node scripts/import-staff.js scripts/templates/staff.csv
+```
+
+- `class_teacher` **wajib** ada `class_name` yang **exact match** kelas murid (contoh `TAHUN SATU · AL-FARABI`)
+- Slip password dijana di `tmp/slip-password-staff-import-*.csv`
+
+## 3c. Export slip password (murid + staff)
+
+```bash
+# Dry-run dulu
+node scripts/export-password-slips.js --all
+
+# Reset password + tulis CSV (awas: password lama diganti)
+node scripts/export-password-slips.js --all --confirm
+# atau berasingan:
+node scripts/export-password-slips.js --murid --confirm
+node scripts/export-password-slips.js --staff --confirm
+```
+
+Slip: `tmp/slip-password-murid-*.csv` dan `tmp/slip-password-staff-*.csv`  
+**Jangan commit** folder `tmp/`.
 
 ## 4. Upload murid KPM/JBA1010
 

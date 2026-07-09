@@ -1,5 +1,5 @@
 export type ReachOutStatus = 'baru' | 'dibaca' | 'dijawab' | 'ditutup'
-export type ReachOutSource = 'murid' | 'ibu_bapa' | 'refleksi'
+export type ReachOutSource = 'murid' | 'ibu_bapa' | 'refleksi' | 'guru'
 
 export const REACH_OUT_STATUS_LABELS: Record<ReachOutStatus, string> = {
   baru: 'Baru',
@@ -12,6 +12,7 @@ export const REACH_OUT_SOURCE_LABELS: Record<ReachOutSource, string> = {
   murid: 'Murid',
   ibu_bapa: 'Ibu Bapa',
   refleksi: 'Refleksi',
+  guru: 'Rujukan Guru',
 }
 
 export function reachOutStatusClass(status: ReachOutStatus): string {

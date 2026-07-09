@@ -21,8 +21,8 @@ export default function Home() {
   const roles = [
     { icon: GraduationCap, title: 'Murid', desc: 'Rekod Perkembangan Murid', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'hover:border-emerald-200', enabled: true },
     { icon: Compass, title: 'GBK', desc: 'Intervensi Bimbingan dan Kaunseling', color: 'text-amber-700', bg: 'bg-amber-50', border: 'hover:border-amber-200', enabled: true },
-    { icon: Backpack, title: 'Guru', desc: 'Catatan Tingkah Laku dan Kelas', color: 'text-violet-700', bg: 'bg-violet-50', border: 'hover:border-violet-200', enabled: false },
-    { icon: HomeIcon, title: 'Ibu Bapa', desc: 'Pemantauan Rekod Perkembangan Murid', color: 'text-rose-700', bg: 'bg-rose-50', border: 'hover:border-rose-200', enabled: false },
+    { icon: Backpack, title: 'Guru', desc: 'Catatan Tingkah Laku dan Kelas', color: 'text-violet-700', bg: 'bg-violet-50', border: 'hover:border-violet-200', enabled: true },
+    { icon: HomeIcon, title: 'Ibu Bapa', desc: 'Pemantauan Rekod Perkembangan Murid', color: 'text-rose-700', bg: 'bg-rose-50', border: 'hover:border-rose-200', enabled: true },
   ]
 
   function handleCardTilt(e: React.MouseEvent<HTMLButtonElement>) {

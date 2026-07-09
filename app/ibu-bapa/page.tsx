@@ -17,7 +17,6 @@ import {
 } from '@/lib/parent-dashboard'
 import {
   BarChart2,
-  Bell,
   Calendar,
   Heart,
   Star,
@@ -373,15 +372,27 @@ export default function IbuBapaPage() {
 
   if (children.length === 0) {
     return (
-      <PortalShell title="Portal Ibu Bapa">
-        <div className="mx-auto max-w-lg space-y-6 py-12">
-          <div className="text-center">
+      <PortalShell
+        title="Portal Ibu Bapa"
+        subtitle="Paut anak dengan No. IC untuk lihat perkembangan, kehadiran & lencana"
+      >
+        <div className="mx-auto max-w-lg space-y-6 py-8">
+          <div className="panel text-center">
             <p className="text-5xl">👪</p>
-            <h2 className="mt-4 text-xl font-black text-slate-900">Paut anak anda</h2>
-            <p className="mt-2 text-sm text-slate-500">Tiada anak dipautkan lagi. Gunakan No. IC murid di bawah.</p>
+            <h2 className="mt-4 text-xl font-black text-slate-900">Mulakan pantauan anak</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+              1) Simpan No. IC anda · 2) Paut No. IC murid (12 digit) · 3) Lihat dashboard perkembangan.
+              Nota dalaman guru dan rekod kaunseling sulit <b>tidak</b> dikongsi.
+            </p>
           </div>
           {myIcPanel}
           {addChildPanel}
+          <p className="text-center text-xs text-slate-400">
+            Belum ada akaun?{' '}
+            <a href="/daftar-akaun" className="font-semibold text-primary-700 underline">
+              Daftar ibu bapa
+            </a>
+          </p>
         </div>
       </PortalShell>
     )
@@ -399,9 +410,9 @@ export default function IbuBapaPage() {
             Kemaskini terakhir: {formatLastUpdate(checkins[0]?.checkin_date)}
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-slate-600">
-          <Bell size={18} />
-          <span className="text-xs font-semibold">Notifikasi sekolah (akan datang)</span>
+        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-emerald-800 ring-1 ring-emerald-100">
+          <Shield size={16} />
+          <span className="text-xs font-semibold">Data terhad — nota guru &amp; rekod GBK sulit tidak dipapar</span>
         </div>
       </div>
 

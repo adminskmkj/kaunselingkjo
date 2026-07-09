@@ -42,7 +42,7 @@ const navItems: NavItem[] = [
   { href: '/murid/sejarah', label: 'Rekod Saya', icon: TrendingUp, roles: ['student'] },
   { href: '/murid/lencana', label: 'Lencana', icon: Trophy, roles: ['student'] },
   { href: '/murid/reach-out', label: 'Reach Out', icon: MessageCircle, roles: ['student'] },
-  { href: '/guru', label: 'Kelas Saya', icon: Users, roles: ['class_teacher', 'discipline_teacher', 'admin'] },
+  { href: '/guru', label: 'Portal Guru', icon: Users, roles: ['class_teacher', 'discipline_teacher', 'admin'] },
   { href: '/gbk', label: 'Pemantauan GBK', icon: Compass, roles: ['counselor', 'admin'] },
   { href: '/gbk/kes', label: 'Pengurusan Kes', icon: ClipboardList, roles: ['counselor', 'admin'] },
   { href: '/gbk/reach-out', label: 'Reach Out Inbox', icon: Inbox, roles: ['counselor', 'admin'] },

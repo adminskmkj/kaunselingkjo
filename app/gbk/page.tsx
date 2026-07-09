@@ -30,9 +30,12 @@ type InterventionForm = {
   summary: string
   follow_up_action: string
   referral_to: string
+  follow_up_date: string
   share_with_parent: boolean
   parent_note: string
 }
+
+type OverdueItem = { student_id: string; tarikh_susulan: string }
 
 type SessionRow = {
   id: string
@@ -54,7 +57,12 @@ export default function GBKDashboardPage() {
   const [pendingSessions, setPendingSessions] = useState<SessionRow[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [aiStudent, setAiStudent] = useState<StudentRisk | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiResult, setAiResult] = useState('')
+  const [aiError, setAiError] = useState('')
   const [riskListLevel, setRiskListLevel] = useState<RiskLevel | null>(null)
+  const [overdueItems, setOverdueItems] = useState<OverdueItem[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState<InterventionForm>({
     student_id: '',
@@ -64,6 +72,7 @@ export default function GBKDashboardPage() {
     summary: '',
     follow_up_action: '',
     referral_to: '',
+    follow_up_date: '',
     share_with_parent: false,
     parent_note: '',
   })
@@ -123,6 +132,22 @@ export default function GBKDashboardPage() {
         ((openCases || []) as { student_id: string }[]).map((c) => c.student_id)
       )
       setOpenCaseStudentIds(triaged)
+
+      // Overdue follow-up: case belum selesai tapi tarikh_susulan lepas
+      const today = new Date().toISOString().split('T')[0]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: ov, error: ovErr } = await (supabase as any)
+        .from('intervention_records')
+        .select('student_id, tarikh_susulan')
+        .neq('case_status', 'selesai')
+        .not('tarikh_susulan', 'is', null)
+
+      if (ovErr) throw ovErr
+      setOverdueItems(
+        ((ov || []) as { student_id: string; tarikh_susulan: string }[])
+          .filter((o) => o.tarikh_susulan < today)
+          .map((o) => ({ student_id: o.student_id, tarikh_susulan: o.tarikh_susulan }))
+      )
 
       // Fetch pending counseling sessions (murid tempah, belum disahkan)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -307,10 +332,38 @@ export default function GBKDashboardPage() {
       summary: '',
       follow_up_action: '',
       referral_to: '',
+      follow_up_date: '',
       share_with_parent: false,
       parent_note: '',
     })
     setShowModal(true)
+  }
+
+  const runAiAnalysis = async (student: StudentRisk) => {
+    setAiStudent(student)
+    setAiResult('')
+    setAiError('')
+    setAiLoading(true)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('Sesi tamat. Log masuk semula.')
+      const res = await fetch('/api/gbk/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ student_id: student.student_id }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Gagal dapatkan analisis')
+      setAiResult(json.analysis || 'Tiada analisis dijana.')
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : 'Ralat tidak diketahui')
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   async function confirmSession(sessionId: string, action: 'disahkan' | 'dibatalkan') {
@@ -342,6 +395,7 @@ export default function GBKDashboardPage() {
         summary: form.summary,
         follow_up_action: form.follow_up_action,
         referral_to: form.referral_to || null,
+        tarikh_susulan: form.follow_up_date || null,
         case_status: 'baru',
         share_with_parent: form.share_with_parent,
         parent_note: form.share_with_parent ? form.parent_note.trim() || null : null,
@@ -372,6 +426,57 @@ export default function GBKDashboardPage() {
 
   return (
     <PortalShell title="Dashboard GBK" subtitle="Pemantauan risiko, intervensi awal dan sesi kaunseling">
+      {/* PWA / browser notifications */}
+      <div className="mb-6 flex flex-col gap-3 rounded-xl border border-primary-100 bg-primary-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-sm text-primary-900">
+          <b>Notifikasi GBK (PWA)</b>
+          <p className="mt-0.5 text-xs text-primary-800/80">
+            Aktifkan untuk alert Reach Out baharu &amp; kes lewat susulan. Boleh install app dari browser (Add to Home Screen).
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn-primary shrink-0 px-4 py-2 text-sm"
+          onClick={async () => {
+            if (!('Notification' in window)) {
+              alert('Browser ini tidak sokong notifikasi.')
+              return
+            }
+            const p = await Notification.requestPermission()
+            if (p === 'granted') {
+              alert('✅ Notifikasi dibenarkan. Pastikan page GBK dibuka atau app di-install.')
+              if ('serviceWorker' in navigator) {
+                const reg = await navigator.serviceWorker.ready
+                reg.active?.postMessage({
+                  type: 'SHOW_NOTIFICATION',
+                  title: 'S.T.A.R KJo — GBK',
+                  body: 'Notifikasi aktif. Anda akan dimaklumkan bila ada Reach Out / kes lewat.',
+                  url: '/gbk',
+                  tag: 'gbk-test',
+                })
+              }
+            } else {
+              alert('Notifikasi ditolak. Aktifkan semula dalam tetapan browser.')
+            }
+          }}
+        >
+          Aktifkan notifikasi
+        </button>
+      </div>
+
+      {overdueItems.length > 0 && (
+        <div className="mb-8 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+            {overdueItems.length}
+          </span>
+          <div className="text-sm text-red-800">
+            <b>Susulan lewat:</b> {overdueItems.length} kes belum selesai melepasi tarikh susulan.
+            <Link href="/gbk/kes" className="ml-1 font-semibold underline hover:no-underline">
+              Semak Pengurusan Kes
+            </Link>
+          </div>
+        </div>
+      )}
       {/* Risk Level Stats */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
         <StatCard
@@ -502,7 +607,11 @@ export default function GBKDashboardPage() {
               <tbody className="divide-y divide-neutral-100">
                 {attentionStudents.map((s) => (
                   <tr key={s.student_id} className="hover:bg-neutral-50 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-neutral-900">{s.full_name}</td>
+                    <td className="px-6 py-4 font-semibold text-neutral-900">
+                      <Link href={`/gbk/murid/${s.student_id}`} className="hover:text-primary-600 hover:underline">
+                        {s.full_name}
+                      </Link>
+                    </td>
                     <td className="px-6 py-4 text-sm text-neutral-600">{s.class_name || '-'}</td>
                     <td className="px-6 py-4">
                       <span className="text-lg font-bold text-primary-600">{s.avg_score}%</span>
@@ -522,9 +631,14 @@ export default function GBKDashboardPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button onClick={() => openInterventionModal(s)} className="btn-primary text-xs py-2 px-4">
-                        Intervensi
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button onClick={() => runAiAnalysis(s)} className="btn-secondary text-xs py-2 px-3" disabled={aiLoading && aiStudent?.student_id === s.student_id}>
+                          {aiLoading && aiStudent?.student_id === s.student_id ? '⏳...' : '🤖 Analisis AI'}
+                        </button>
+                        <button onClick={() => openInterventionModal(s)} className="btn-primary text-xs py-2 px-4">
+                          Intervensi
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -558,7 +672,11 @@ export default function GBKDashboardPage() {
             studentsInLevel(riskListLevel).map((s) => (
               <li key={s.student_id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <p className="font-semibold text-neutral-900">{s.full_name}</p>
+                  <p className="font-semibold text-neutral-900">
+                  <Link href={`/gbk/murid/${s.student_id}`} className="hover:text-primary-600 hover:underline">
+                    {s.full_name}
+                  </Link>
+                </p>
                   <p className="text-sm text-neutral-500">{s.class_name || 'Kelas tidak ditetapkan'}</p>
                   <p className="mt-1 text-xs text-neutral-400">
                     Skor emosi (7h): {s.avg_score}% · refleksi terakhir: {s.last_checkin}
@@ -664,6 +782,16 @@ export default function GBKDashboardPage() {
             />
           </div>
 
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-neutral-700">Tarikh Susulan (opsyen)</label>
+            <input
+              type="date"
+              value={form.follow_up_date}
+              onChange={(e) => setForm({ ...form, follow_up_date: e.target.value })}
+              className="input"
+            />
+          </div>
+
           <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-4 space-y-3">
             <label className="flex items-center gap-2 text-sm font-semibold text-violet-900">
               <input
@@ -685,6 +813,50 @@ export default function GBKDashboardPage() {
           </div>
         </form>
       </ModalOverlay>
+
+      <ModalOverlay
+        open={aiStudent !== null}
+        onClose={() => setAiStudent(null)}
+        title="Analisis AI"
+        subtitle={aiStudent ? `Murid: ${aiStudent.full_name}` : undefined}
+        size="lg"
+        footer={
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button type="button" onClick={() => setAiStudent(null)} className="btn-secondary flex-1">
+              Tutup
+            </button>
+            {aiResult && aiStudent && (
+              <button
+                type="button"
+                className="btn-primary flex-1"
+                onClick={() => {
+                  openInterventionModal(aiStudent)
+                  setForm((f) => ({ ...f, summary: aiResult }))
+                  setAiStudent(null)
+                }}
+              >
+                Guna untuk Intervensi
+              </button>
+            )}
+          </div>
+        }
+      >
+        {aiLoading && (
+          <div className="flex items-center gap-3 py-10 text-neutral-500">
+            <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
+            Sedang menganalisis...
+          </div>
+        )}
+        {aiError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{aiError}</div>
+        )}
+        {aiResult && !aiLoading && (
+          <div className="ai-markdown max-h-[55dvh] overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-neutral-800">
+            {aiResult}
+          </div>
+        )}
+      </ModalOverlay>
     </PortalShell>
   )
 }
+

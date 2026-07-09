@@ -1,0 +1,6 @@
+email,full_name,role,class_name,password
+ashraf@skmkj.edu.my,Ashraf (GBK),counselor,,
+tasha@skmkj.edu.my,Tasha (GBK),counselor,,
+# Contoh guru kelas — class_name MESTI sama format murid (TAHUN X · NAMA KELAS)
+# cikgu.ali@skmkj.edu.my,Cikgu Ali,class_teacher,TAHUN SATU · AL-FARABI,
+# disiplin@skmkj.edu.my,Guru Disiplin,discipline_teacher,,

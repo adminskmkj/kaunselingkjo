@@ -170,9 +170,10 @@ https://kaunselingkjo.vercel.app/** (production)
 Portal yang dah ada dalam repo sekarang:
 - **Murid**: refleksi harian, lihat skor sendiri, reach out
 - **GBK**: murid perlu perhatian, intervensi, pengurusan kes, history, print rekod
-- **Guru**: pantau kelas dan catatan berkaitan murid
-- **Ibu bapa**: daftar sendiri, login, paut anak ikut IC, demo ibu bapa
+- **Guru**: senarai kelas, filter risiko, rekod merit/disiplin/catatan, rujuk GBK, profil murid + trend refleksi
+- **Ibu bapa**: enabled di landing, daftar, paut anak ikut IC, dashboard perkembangan
 - **Pentadbir**: kawal portal, pantau data sekolah
+- **PWA**: installable + notifikasi browser untuk GBK (Reach Out / kes lewat)
 
 ## 🗺️ Roadmap Ringkas
 
@@ -186,10 +187,12 @@ Portal yang dah ada dalam repo sekarang:
 - [x] Rekod intervensi boleh dicetak
 
 ### Seterusnya
-- [ ] Kemas kini dashboard murid/guru supaya lebih kemas
+- [x] Portal guru + ibu bapa enable
+- [x] Slip password export (`npm run export-slips`)
+- [x] PWA + notifikasi browser GBK (Reach Out / overdue)
+- [ ] Import senarai guru kelas (CSV) bila sekolah berikan
 - [ ] Laporan / export PDF yang lebih cantik
-- [ ] Notifikasi automatik bila kes overdue / follow-up
-- [ ] Audit & ringkasan ibu bapa yang lebih jelas
+- [ ] Badge auto-award + weekly_scores job
 
 ## 📝 Scripts
 
