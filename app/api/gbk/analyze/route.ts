@@ -1,18 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const groqKey = process.env.GROQ_API_KEY
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
 
 // ponytail: no AI SDK dep — Groq is OpenAI-compatible, plain fetch suffices.
-// Add persistence (ai_analyses table) when cross-session caching is wanted.
+// Read env INSIDE handler (Vercel injects at runtime; top-level can be empty on cold cache edge cases).
+// After adding GROQ_API_KEY in Vercel → must Redeploy Production.
 export async function POST(req: NextRequest) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+    // Accept common typos/aliases
+    const groqKey = (
+      process.env.GROQ_API_KEY ||
+      process.env.GROQ_KEY ||
+      process.env.GROQ_APIKEY ||
+      ''
+    ).trim()
+    const GROQ_MODEL = (process.env.GROQ_MODEL || 'llama-3.3-70b-versatile').trim()
+
     if (!groqKey) {
-      return NextResponse.json({ error: 'Groq API key tidak dikonfigurasi (GROQ_API_KEY)' }, { status: 503 })
+      return NextResponse.json(
+        {
+          error:
+            'Groq API key tidak dikonfigurasi. Di Vercel → Settings → Environment Variables, pastikan nama tepat GROQ_API_KEY, Environment = Production, kemudian Redeploy deployment terkini.',
+          code: 'MISSING_GROQ_API_KEY',
+        },
+        { status: 503 }
+      )
     }
     if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json({ error: 'Supabase tidak dikonfigurasi' }, { status: 500 })
