@@ -86,6 +86,8 @@ export default function GuruStudentDetailPage() {
   // rekod modal
   const [showRecord, setShowRecord] = useState(false)
   const [recType, setRecType] = useState('merit')
+  const [severity, setSeverity] = useState<'ringan' | 'sederhana' | 'serius'>('sederhana')
+  const [notifyGbk, setNotifyGbk] = useState(false)
   const [desc, setDesc] = useState('')
   const [saving, setSaving] = useState(false)
   const [formErr, setFormErr] = useState('')
@@ -225,20 +227,50 @@ export default function GuruStudentDetailPage() {
     }
     setSaving(true)
     try {
-      const pointsVal = recType === 'merit' ? 5 : recType === 'discipline_case' ? -5 : 0
+      const sevPts = { ringan: -3, sederhana: -5, serius: -10 } as const
+      let pointsVal = 0
+      if (recType === 'merit') pointsVal = 5
+      else if (recType === 'cocurricular') pointsVal = 3
+      else if (recType === 'discipline_case') pointsVal = sevPts[severity]
+
+      const prefix =
+        recType === 'discipline_case'
+          ? `[Disiplin ${severity}] `
+          : recType === 'cocurricular'
+            ? '[Kokurikulum] '
+            : ''
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insErr } = await (supabase as any).from('behavior_records').insert({
         student_id: studentId,
         record_type: recType,
-        description: desc.trim(),
+        description: `${prefix}${desc.trim()}`,
         points: pointsVal,
         recorded_by: profile?.id,
         record_date: new Date().toISOString().split('T')[0],
       })
       if (insErr) throw insErr
+
+      if (notifyGbk) {
+        const msg =
+          recType === 'discipline_case'
+            ? `Rujukan disiplin (${severity}) · ${student?.full_name}\n\n${desc.trim()}`
+            : `Rujukan guru · ${student?.full_name}\n\n${desc.trim()}`
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: rErr } = await (supabase as any).from('reach_out_messages').insert({
+          student_id: studentId,
+          sender_id: profile?.id,
+          message: msg,
+          source: 'guru',
+          status: 'baru',
+        })
+        if (rErr) throw new Error(`Rekod OK, rujuk GBK gagal: ${rErr.message}`)
+      }
+
       setShowRecord(false)
       setDesc('')
       setRecType('merit')
+      setNotifyGbk(false)
       fetchAll()
     } catch (err) {
       setFormErr(err instanceof Error ? err.message : 'Gagal simpan.')
@@ -254,6 +286,15 @@ export default function GuruStudentDetailPage() {
     setRefSaved(false)
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from('behavior_records').insert({
+        student_id: studentId,
+        record_type: 'teacher_note',
+        description: `[Rujuk GBK] ${refMsg.trim()}`,
+        points: 0,
+        recorded_by: profile?.id,
+        record_date: new Date().toISOString().split('T')[0],
+      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insErr } = await (supabase as any).from('reach_out_messages').insert({
         student_id: studentId,
         sender_id: profile?.id,
@@ -263,6 +304,7 @@ export default function GuruStudentDetailPage() {
       })
       if (insErr) throw insErr
       setRefSaved(true)
+      fetchAll()
       setTimeout(() => {
         setShowRef(false)
         setRefMsg('')
@@ -512,11 +554,34 @@ export default function GuruStudentDetailPage() {
         }
       >
         <form id="guru-detail-record" onSubmit={handleSaveRecord} className="space-y-3">
-          <select value={recType} onChange={(e) => setRecType(e.target.value)} className="input w-full">
+          <select
+            value={recType}
+            onChange={(e) => {
+              setRecType(e.target.value)
+              if (e.target.value === 'discipline_case' && severity === 'serius') setNotifyGbk(true)
+            }}
+            className="input w-full"
+          >
             <option value="merit">⭐ Merit (+5)</option>
-            <option value="teacher_note">📝 Catatan Guru</option>
-            <option value="discipline_case">⚠️ Kes Disiplin (−5)</option>
+            <option value="cocurricular">🏆 Kokurikulum (+3)</option>
+            <option value="teacher_note">📝 Catatan Guru (dalaman)</option>
+            <option value="discipline_case">⚠️ Kes Disiplin</option>
           </select>
+          {recType === 'discipline_case' && (
+            <select
+              value={severity}
+              onChange={(e) => {
+                const v = e.target.value as 'ringan' | 'sederhana' | 'serius'
+                setSeverity(v)
+                if (v === 'serius') setNotifyGbk(true)
+              }}
+              className="input w-full"
+            >
+              <option value="ringan">Ringan (−3)</option>
+              <option value="sederhana">Sederhana (−5)</option>
+              <option value="serius">Serius (−10)</option>
+            </select>
+          )}
           <textarea
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
@@ -525,6 +590,18 @@ export default function GuruStudentDetailPage() {
             placeholder="Keterangan rekod..."
             className="input min-h-[100px] w-full"
           />
+          <label className="flex items-start gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={notifyGbk}
+              onChange={(e) => setNotifyGbk(e.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              <b>Maklumkan GBK</b>
+              <span className="block text-xs text-slate-500">Hantar ke inbox kaunselor (disyorkan untuk kes serius)</span>
+            </span>
+          </label>
           {formErr && (
             <p className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
               {formErr}
