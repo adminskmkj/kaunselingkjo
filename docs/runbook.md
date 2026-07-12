@@ -18,7 +18,10 @@ Lepas 010, skor disiplin/emosi berasingan; risk GBK ikut **emosi** (bukan skor g
 
 Juga pastikan migration portal guru dijalankan bila perlu:
 
+- `supabase/migrations/017_guru_referral.sql` — **(A)** enum `guru` sahaja, Run berasingan
+- `supabase/migrations/017b_guru_referral_policy.sql` — **(B)** policy + trigger, Run lepas A (elak error 55P04)
 - `supabase/migrations/026_staff_view_risk_levels.sql` — guru/disiplin boleh **baca** `risk_levels` (read-only) untuk dashboard `/guru`.
+- `supabase/migrations/027_checkins_q7_q10_to_integer.sql` — **WAJIB** untuk refleksi 22 soalan (tukar q7/q10 enum → integer; fix gagal simpan)
 
 ## 2. Backfill profile lama
 

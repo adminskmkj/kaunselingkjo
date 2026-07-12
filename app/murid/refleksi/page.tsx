@@ -57,7 +57,7 @@ const EMOSI_C: Question[] = [
   { key: 'q19_tekanan_risu', text: 'Saya berasa risau atau tertekan hari ini.' },
   { key: 'q20_tekanan_takut', text: 'Saya berasa takut untuk datang ke sekolah hari ini.' },
   { key: 'q21_tekanan_marah', text: 'Saya mudah marah hari ini.' },
-  { key: 'q22_tekanan_yakin', text: 'Saya berasa yakin dengan diri saya hari ini.' },
+  { key: 'q22_tekanan_yakin', text: 'Saya berasa tidak yakin dengan diri saya hari ini.' },
 ]
 
 export default function RefleksiPage() {
@@ -127,15 +127,35 @@ export default function RefleksiPage() {
 
       const { error } = await client.from('checkins').insert(payload)
 
-      if (error) throw error
+      if (error) {
+        const msg = (error as { message?: string }).message || 'Gagal menyimpan refleksi.'
+        // hint untuk pentadbir bila migration 027 belum apply
+        if (/emotion_type|need_help|enum|COALESCE types/i.test(msg)) {
+          throw new Error(
+            'Pangkalan data belum dikemas kini (migration 027). Hubungi pentadbir sekolah.'
+          )
+        }
+        if (/check constraint|BETWEEN 1 AND 3|q1_kehadiran/i.test(msg)) {
+          throw new Error(
+            'Pangkalan data masih skala 1-3 (migration 029 belum apply). Hubungi pentadbir.'
+          )
+        }
+        throw new Error(msg)
+      }
 
       setSubmitted(true)
       setTimeout(() => {
         router.push('/murid')
       }, 2000)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error submitting checkin:', error)
-      setFormError(error instanceof Error ? error.message : 'Gagal menyimpan refleksi. Sila cuba lagi.')
+      const msg =
+        error instanceof Error
+          ? error.message
+          : error && typeof error === 'object' && 'message' in error
+            ? String((error as { message: unknown }).message)
+            : 'Gagal menyimpan refleksi. Sila cuba lagi.'
+      setFormError(msg || 'Gagal menyimpan refleksi. Sila cuba lagi.')
     } finally {
       setLoading(false)
     }
